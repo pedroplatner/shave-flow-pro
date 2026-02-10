@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Check, X, Trash2 } from 'lucide-react';
 
-const agendamentos = [
+const initialAgendamentos = [
   { id: '1', hora: '09:00', cliente: 'Roberto Alves', barbeiro: 'Carlos Silva', servico: 'Corte + Barba', status: 'confirmado' },
   { id: '2', hora: '10:00', cliente: 'Fernando Souza', barbeiro: 'Rafael Santos', servico: 'Corte Masculino', status: 'confirmado' },
   { id: '3', hora: '11:00', cliente: 'Ricardo Lima', barbeiro: 'André Oliveira', servico: 'Barba', status: 'pendente' },
@@ -11,6 +12,28 @@ const agendamentos = [
 ];
 
 export default function Agendamentos() {
+  const [agendamentos, setAgendamentos] = useState(initialAgendamentos);
+
+  const updateStatus = (id: string, status: string) => {
+    setAgendamentos(agendamentos.map(a => a.id === id ? { ...a, status } : a));
+  };
+
+  const removeAgendamento = (id: string) => {
+    setAgendamentos(agendamentos.filter(a => a.id !== id));
+  };
+
+  const statusColors: Record<string, string> = {
+    confirmado: 'bg-success/10 text-success',
+    pendente: 'bg-primary/10 text-primary',
+    cancelado: 'bg-danger/10 text-danger',
+  };
+
+  const statusLabels: Record<string, string> = {
+    confirmado: 'Confirmado',
+    pendente: 'Pendente',
+    cancelado: 'Cancelado',
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -35,15 +58,31 @@ export default function Agendamentos() {
                   <p className="text-sm text-muted-foreground font-body">{a.servico} • {a.barbeiro}</p>
                 </div>
               </div>
-              <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${
-                a.status === 'confirmado'
-                  ? 'bg-success/10 text-success'
-                  : 'bg-primary/10 text-primary'
-              }`}>
-                {a.status === 'confirmado' ? 'Confirmado' : 'Pendente'}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${statusColors[a.status] || ''}`}>
+                  {statusLabels[a.status] || a.status}
+                </span>
+                <div className="flex items-center gap-1">
+                  {a.status === 'pendente' && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => updateStatus(a.id, 'confirmado')} title="Confirmar">
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {a.status !== 'cancelado' && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-danger" onClick={() => updateStatus(a.id, 'cancelado')} title="Cancelar">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => removeAgendamento(a.id)} title="Excluir">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
+          {agendamentos.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground font-body">Nenhum agendamento para hoje.</div>
+          )}
         </div>
       </div>
     </Layout>
