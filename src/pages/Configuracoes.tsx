@@ -3,7 +3,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useTheme } from 'next-themes';
-import { Calendar, Package, Warehouse, Moon, Sun } from 'lucide-react';
+import { Calendar, Package, Warehouse, Moon, Sun, Bot } from 'lucide-react';
 
 export default function Configuracoes() {
   const { settings, updateSettings } = useApp();
@@ -13,6 +13,7 @@ export default function Configuracoes() {
     { key: 'moduloAgendamentos' as const, label: 'Agendamentos', desc: 'Ativar módulo de agendamentos', icon: Calendar },
     { key: 'moduloProdutos' as const, label: 'Produtos', desc: 'Vender produtos nos atendimentos', icon: Package },
     { key: 'moduloEstoque' as const, label: 'Estoque', desc: 'Controle de estoque de produtos', icon: Warehouse },
+    { key: 'moduloIA' as const, label: 'Assistente IA', desc: 'Chat inteligente com análise do negócio', icon: Bot },
   ];
 
   return (

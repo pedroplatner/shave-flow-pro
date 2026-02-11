@@ -15,6 +15,7 @@ import Estoque from "./pages/Estoque";
 import Relatorios from "./pages/Relatorios";
 import Agendamentos from "./pages/Agendamentos";
 import Configuracoes from "./pages/Configuracoes";
+import AssistenteIA from "./pages/AssistenteIA";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/agendamentos" element={<Agendamentos />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
+              <Route path="/assistente-ia" element={<AssistenteIA />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

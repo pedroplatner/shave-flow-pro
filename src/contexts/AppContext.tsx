@@ -4,6 +4,7 @@ interface AppSettings {
   moduloAgendamentos: boolean;
   moduloProdutos: boolean;
   moduloEstoque: boolean;
+  moduloIA: boolean;
 }
 
 interface AppContextType {
@@ -20,6 +21,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       moduloAgendamentos: true,
       moduloProdutos: true,
       moduloEstoque: true,
+      moduloIA: true,
     };
   });
 

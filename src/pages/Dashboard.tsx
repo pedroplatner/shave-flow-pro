@@ -2,31 +2,49 @@ import Layout from '@/components/Layout';
 import StatCard from '@/components/StatCard';
 import { DollarSign, TrendingUp, Calendar, Users, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const chartData = [
-  { day: 'Seg', receita: 850 },
-  { day: 'Ter', receita: 1200 },
-  { day: 'Qua', receita: 980 },
-  { day: 'Qui', receita: 1450 },
-  { day: 'Sex', receita: 1800 },
-  { day: 'Sáb', receita: 2200 },
-  { day: 'Dom', receita: 400 },
-];
-
-const recentAtendimentos = [
-  { id: 1, cliente: 'João Silva', barbeiro: 'Carlos', servico: 'Corte + Barba', valor: 75, hora: '14:30' },
-  { id: 2, cliente: 'Pedro Santos', barbeiro: 'Rafael', servico: 'Corte', valor: 45, hora: '13:15' },
-  { id: 3, cliente: 'Lucas Oliveira', barbeiro: 'Carlos', servico: 'Barba', valor: 35, hora: '12:00' },
-  { id: 4, cliente: 'Marcos Lima', barbeiro: 'André', servico: 'Corte + Sobrancelha', valor: 60, hora: '11:30' },
-  { id: 5, cliente: 'Gabriel Costa', barbeiro: 'Rafael', servico: 'Corte', valor: 45, hora: '10:00' },
-];
-
-const alertasEstoque = [
-  { produto: 'Pomada Modeladora', quantidade: 2, minimo: 5 },
-  { produto: 'Shampoo Profissional', quantidade: 1, minimo: 3 },
-];
+import { mockAtendimentos, mockBarbeiros, mockProdutos } from '@/data/mock';
 
 export default function Dashboard() {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Compute real metrics from atendimentos
+  const receitaHoje = mockAtendimentos
+    .filter(a => new Date(a.data) >= startOfDay)
+    .reduce((acc, a) => acc + a.total, 0);
+
+  const receitaSemanal = mockAtendimentos
+    .filter(a => (now.getTime() - new Date(a.data).getTime()) / (1000 * 60 * 60 * 24) <= 7)
+    .reduce((acc, a) => acc + a.total, 0);
+
+  const receitaMensal = mockAtendimentos
+    .filter(a => (now.getTime() - new Date(a.data).getTime()) / (1000 * 60 * 60 * 24) <= 30)
+    .reduce((acc, a) => acc + a.total, 0);
+
+  const barbeirosAtivos = mockBarbeiros.filter(b => b.ativo).length;
+
+  // Chart: last 7 days
+  const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const chartData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (6 - i));
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+    const receita = mockAtendimentos
+      .filter(a => { const dt = new Date(a.data); return dt >= dayStart && dt < dayEnd; })
+      .reduce((acc, a) => acc + a.total, 0);
+    return { day: dias[dayStart.getDay()], receita };
+  });
+
+  // Recent atendimentos (sorted by date desc, top 5)
+  const recentAtendimentos = [...mockAtendimentos]
+    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+    .slice(0, 5);
+
+  // Stock alerts
+  const alertasEstoque = mockProdutos.filter(p => p.quantidade <= p.minimo);
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -36,10 +54,10 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard title="Receita Hoje" value="R$ 580" icon={DollarSign} change="+12% vs ontem" positive />
-          <StatCard title="Receita Semanal" value="R$ 8.880" icon={TrendingUp} change="+8% vs semana anterior" positive />
-          <StatCard title="Receita Mensal" value="R$ 32.450" icon={Calendar} change="+15% vs mês anterior" positive />
-          <StatCard title="Barbeiros Ativos" value="4" icon={Users} />
+          <StatCard title="Receita Hoje" value={`R$ ${receitaHoje.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={DollarSign} />
+          <StatCard title="Receita Semanal" value={`R$ ${receitaSemanal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} />
+          <StatCard title="Receita Mensal" value={`R$ ${receitaMensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={Calendar} />
+          <StatCard title="Barbeiros Ativos" value={String(barbeirosAtivos)} icon={Users} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -73,7 +91,7 @@ export default function Dashboard() {
               {alertasEstoque.map((item, i) => (
                 <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div>
-                    <p className="font-medium text-sm">{item.produto}</p>
+                    <p className="font-medium text-sm">{item.nome}</p>
                     <p className="text-xs text-muted-foreground font-body">Mínimo: {item.minimo}</p>
                   </div>
                   <span className="text-danger font-bold text-lg">{item.quantidade}</span>
@@ -104,11 +122,11 @@ export default function Dashboard() {
               <tbody>
                 {recentAtendimentos.map(a => (
                   <tr key={a.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-6 text-sm font-body">{a.hora}</td>
+                    <td className="py-3 px-6 text-sm font-body">{new Date(a.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
                     <td className="py-3 px-6 text-sm font-medium">{a.cliente}</td>
                     <td className="py-3 px-6 text-sm font-body">{a.barbeiro}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.servico}</td>
-                    <td className="py-3 px-6 text-sm text-right font-semibold">R$ {a.valor}</td>
+                    <td className="py-3 px-6 text-sm font-body">{a.servicos.join(', ')}</td>
+                    <td className="py-3 px-6 text-sm text-right font-semibold">R$ {a.total.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
