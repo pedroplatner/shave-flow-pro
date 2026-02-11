@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import {
   LayoutDashboard, Scissors, Users, Sparkles, Package,
-  BarChart3, Calendar, Settings, Menu, LogOut
+  BarChart3, Calendar, Settings, Menu, LogOut, Bot
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,10 @@ const menuItems = [
   { icon: Scissors, label: 'Atendimentos', path: '/atendimentos' },
   { icon: Users, label: 'Barbeiros', path: '/barbeiros' },
   { icon: Sparkles, label: 'Serviços', path: '/servicos' },
-  { icon: Package, label: 'Estoque', path: '/estoque', module: 'moduloEstoque' as const },
+  { icon: Package, label: 'Produtos & Estoque', path: '/estoque', modules: ['moduloProdutos', 'moduloEstoque'] as const },
   { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
-  { icon: Calendar, label: 'Agendamentos', path: '/agendamentos', module: 'moduloAgendamentos' as const },
+  { icon: Calendar, label: 'Agendamentos', path: '/agendamentos', modules: ['moduloAgendamentos'] as const },
+  { icon: Bot, label: 'Assistente IA', path: '/assistente-ia', modules: ['moduloIA'] as const },
   { icon: Settings, label: 'Configurações', path: '/configuracoes' },
 ];
 
@@ -25,7 +26,9 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const { settings } = useApp();
 
   const filteredItems = menuItems.filter(item => {
-    if (item.module) return settings[item.module];
+    if (item.modules) {
+      return item.modules.some(mod => (settings as any)[mod]);
+    }
     return true;
   });
 
