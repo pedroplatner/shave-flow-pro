@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Bot, Send, User, Loader2, Sparkles } from 'lucide-react';
 import { mockAtendimentos, mockBarbeiros, mockServicos, mockProdutos } from '@/data/mock';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ReactMarkdown from 'react-markdown';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -188,7 +189,13 @@ export default function AssistenteIA() {
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted'
                 }`}>
-                  <div className="whitespace-pre-wrap font-body">{m.content}</div>
+                  <div className="whitespace-pre-wrap font-body prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:font-semibold [&_strong]:font-semibold [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm">
+                    {m.role === 'assistant' ? (
+                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    ) : (
+                      m.content
+                    )}
+                  </div>
                 </div>
                 {m.role === 'user' && (
                   <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-1">
