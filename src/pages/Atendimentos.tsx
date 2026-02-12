@@ -48,10 +48,10 @@ export default function Atendimentos() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Atendimentos</h2>
-            <p className="text-muted-foreground mt-1 font-body">Registre e gerencie os atendimentos do dia</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Atendimentos</h2>
+            <p className="text-muted-foreground mt-1 font-body text-sm">Registre e gerencie os atendimentos do dia</p>
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -117,28 +117,45 @@ export default function Atendimentos() {
           </Sheet>
         </div>
 
-        <div className="bg-card rounded-xl border border-border animate-fade-in">
+        {/* Mobile cards */}
+        <div className="block sm:hidden space-y-3">
+          {atendimentos.map(a => (
+            <div key={a.id} className="bg-card rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium">{a.cliente}</span>
+                <span className="font-semibold text-primary">R$ {a.total.toFixed(2)}</span>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                <p>{a.barbeiro} · {a.servicos.join(', ')}</p>
+                <p>{new Date(a.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} · {a.formaPagamento}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block bg-card rounded-xl border border-border animate-fade-in">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Hora</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Cliente</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Barbeiro</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Serviços</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Pagamento</th>
-                  <th className="text-right py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Total</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Hora</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Cliente</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Barbeiro</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Serviços</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Pagamento</th>
+                  <th className="text-right py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {atendimentos.map(a => (
                   <tr key={a.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-6 text-sm font-body">{new Date(a.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td className="py-3 px-6 text-sm font-medium">{a.cliente}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.barbeiro}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.servicos.join(', ')}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.formaPagamento}</td>
-                    <td className="py-3 px-6 text-sm text-right font-semibold">R$ {a.total.toFixed(2)}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{new Date(a.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-medium">{a.cliente}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{a.barbeiro}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{a.servicos.join(', ')}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{a.formaPagamento}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm text-right font-semibold">R$ {a.total.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

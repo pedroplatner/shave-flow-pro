@@ -11,12 +11,14 @@ import Dashboard from "./pages/Dashboard";
 import Atendimentos from "./pages/Atendimentos";
 import Barbeiros from "./pages/Barbeiros";
 import Servicos from "./pages/Servicos";
+import Produtos from "./pages/Produtos";
 import Estoque from "./pages/Estoque";
 import Relatorios from "./pages/Relatorios";
 import Agendamentos from "./pages/Agendamentos";
 import Configuracoes from "./pages/Configuracoes";
 import AssistenteIA from "./pages/AssistenteIA";
 import NotFound from "./pages/NotFound";
+import FloatingAIChat from "./components/FloatingAIChat";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,7 @@ const App = () => (
               <Route path="/atendimentos" element={<Atendimentos />} />
               <Route path="/barbeiros" element={<Barbeiros />} />
               <Route path="/servicos" element={<Servicos />} />
+              <Route path="/produtos" element={<Produtos />} />
               <Route path="/estoque" element={<Estoque />} />
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/agendamentos" element={<Agendamentos />} />
@@ -42,6 +45,7 @@ const App = () => (
               <Route path="/assistente-ia" element={<AssistenteIA />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <FloatingAIChat />
           </BrowserRouter>
         </TooltipProvider>
       </AppProvider>
