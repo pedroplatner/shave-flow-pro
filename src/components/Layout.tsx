@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import {
-  LayoutDashboard, Scissors, Users, Sparkles, Package,
+  LayoutDashboard, Scissors, Users, Sparkles, Package, Warehouse,
   BarChart3, Calendar, Settings, Menu, LogOut, Bot
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -14,7 +14,8 @@ const menuItems = [
   { icon: Scissors, label: 'Atendimentos', path: '/atendimentos' },
   { icon: Users, label: 'Barbeiros', path: '/barbeiros' },
   { icon: Sparkles, label: 'Serviços', path: '/servicos' },
-  { icon: Package, label: 'Produtos & Estoque', path: '/estoque', modules: ['moduloProdutos', 'moduloEstoque'] as const },
+  { icon: Package, label: 'Produtos', path: '/produtos', modules: ['moduloProdutos'] as const },
+  { icon: Warehouse, label: 'Estoque', path: '/estoque', modules: ['moduloEstoque'] as const },
   { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
   { icon: Calendar, label: 'Agendamentos', path: '/agendamentos', modules: ['moduloAgendamentos'] as const },
   { icon: Bot, label: 'Assistente IA', path: '/assistente-ia', modules: ['moduloIA'] as const },
@@ -100,7 +101,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </Sheet>
         </header>
 
-        <main className="flex-1 p-6 lg:p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

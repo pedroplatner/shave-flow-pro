@@ -159,29 +159,29 @@ export default function Relatorios() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Relatórios</h2>
-            <p className="text-muted-foreground mt-1 font-body">Analise o desempenho da sua barbearia</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Relatórios</h2>
+            <p className="text-muted-foreground mt-1 font-body text-sm">Analise o desempenho da sua barbearia</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={exportCSV}>
+            <Button variant="outline" size="sm" onClick={exportCSV}>
               <Download className="h-4 w-4 mr-2" />CSV
             </Button>
-            <Button variant="outline" onClick={exportPDF}>
+            <Button variant="outline" size="sm" onClick={exportPDF}>
               <FileText className="h-4 w-4 mr-2" />PDF
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
           {periodos.map(p => (
             <Button key={p.value} variant={periodo === p.value ? 'default' : 'outline'} size="sm" onClick={() => setPeriodo(p.value)}>
               {p.label}
             </Button>
           ))}
           <Select value={barbeiro} onValueChange={setBarbeiro}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Todos os barbeiros" />
             </SelectTrigger>
             <SelectContent>
@@ -193,36 +193,55 @@ export default function Relatorios() {
           </Select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <StatCard title="Receita Total" value={`R$ ${receitaTotal.toFixed(2)}`} icon={DollarSign} />
           <StatCard title="Atendimentos" value={String(totalAtendimentos)} icon={Scissors} />
           <StatCard title="Comissões" value={`R$ ${comissaoTotal.toFixed(2)}`} icon={Users} />
         </div>
 
-        <div className="bg-card rounded-xl border border-border animate-fade-in">
+        {/* Mobile cards */}
+        <div className="block sm:hidden space-y-3">
+          {filteredAtendimentos.length === 0 ? (
+            <p className="text-center text-muted-foreground text-sm py-8">Nenhum atendimento encontrado.</p>
+          ) : filteredAtendimentos.map(a => (
+            <div key={a.id} className="bg-card rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium text-sm">{a.cliente}</span>
+                <span className="font-semibold text-primary text-sm">R$ {a.total.toFixed(2)}</span>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                <p>{a.barbeiro} · {a.servicos.join(', ')}</p>
+                <p>{new Date(a.data).toLocaleDateString('pt-BR')} · {a.formaPagamento}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block bg-card rounded-xl border border-border animate-fade-in">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Data</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Cliente</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Barbeiro</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Serviços</th>
-                  <th className="text-left py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Pagamento</th>
-                  <th className="text-right py-3 px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Total</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Data</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Cliente</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Barbeiro</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Serviços</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Pagamento</th>
+                  <th className="text-right py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAtendimentos.length === 0 ? (
-                  <tr><td colSpan={6} className="py-8 text-center text-muted-foreground font-body">Nenhum atendimento encontrado para os filtros selecionados.</td></tr>
+                  <tr><td colSpan={6} className="py-8 text-center text-muted-foreground font-body">Nenhum atendimento encontrado.</td></tr>
                 ) : filteredAtendimentos.map(a => (
                   <tr key={a.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-6 text-sm font-body">{new Date(a.data).toLocaleDateString('pt-BR')}</td>
-                    <td className="py-3 px-6 text-sm font-medium">{a.cliente}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.barbeiro}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.servicos.join(', ')}</td>
-                    <td className="py-3 px-6 text-sm font-body">{a.formaPagamento}</td>
-                    <td className="py-3 px-6 text-sm text-right font-semibold">R$ {a.total.toFixed(2)}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{new Date(a.data).toLocaleDateString('pt-BR')}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-medium">{a.cliente}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{a.barbeiro}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{a.servicos.join(', ')}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{a.formaPagamento}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm text-right font-semibold">R$ {a.total.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
