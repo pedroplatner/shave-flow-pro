@@ -14,13 +14,198 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      atendimentos: {
+        Row: {
+          barbeiro: string
+          barbershop_id: string
+          cliente: string
+          created_at: string
+          data: string
+          forma_pagamento: string
+          id: string
+          observacoes: string | null
+          produtos: string[]
+          servicos: string[]
+          total: number
+        }
+        Insert: {
+          barbeiro: string
+          barbershop_id: string
+          cliente: string
+          created_at?: string
+          data?: string
+          forma_pagamento: string
+          id?: string
+          observacoes?: string | null
+          produtos?: string[]
+          servicos?: string[]
+          total?: number
+        }
+        Update: {
+          barbeiro?: string
+          barbershop_id?: string
+          cliente?: string
+          created_at?: string
+          data?: string
+          forma_pagamento?: string
+          id?: string
+          observacoes?: string | null
+          produtos?: string[]
+          servicos?: string[]
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atendimentos_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      barbeiros: {
+        Row: {
+          ativo: boolean
+          barbershop_id: string
+          comissao: number
+          created_at: string
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          barbershop_id: string
+          comissao?: number
+          created_at?: string
+          id?: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          barbershop_id?: string
+          comissao?: number
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barbeiros_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      barbershops: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome?: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      produtos: {
+        Row: {
+          barbershop_id: string
+          created_at: string
+          id: string
+          minimo: number
+          nome: string
+          preco: number
+          quantidade: number
+        }
+        Insert: {
+          barbershop_id: string
+          created_at?: string
+          id?: string
+          minimo?: number
+          nome: string
+          preco?: number
+          quantidade?: number
+        }
+        Update: {
+          barbershop_id?: string
+          created_at?: string
+          id?: string
+          minimo?: number
+          nome?: string
+          preco?: number
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servicos: {
+        Row: {
+          ativo: boolean
+          barbershop_id: string
+          created_at: string
+          duracao: number
+          id: string
+          nome: string
+          preco: number
+        }
+        Insert: {
+          ativo?: boolean
+          barbershop_id: string
+          created_at?: string
+          duracao?: number
+          id?: string
+          nome: string
+          preco?: number
+        }
+        Update: {
+          ativo?: boolean
+          barbershop_id?: string
+          created_at?: string
+          duracao?: number
+          id?: string
+          nome?: string
+          preco?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicos_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_barbershop_id: { Args: never; Returns: string }
+      is_my_barbershop: { Args: { _barbershop_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

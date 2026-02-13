@@ -5,15 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertTriangle, ArrowUp, ArrowDown, FileText } from 'lucide-react';
-import { mockProdutos } from '@/data/mock';
-
-interface Produto {
-  id: string;
-  nome: string;
-  preco: number;
-  quantidade: number;
-  minimo: number;
-}
+import { useProdutos, useBarbershopId } from '@/hooks/useBarbershop';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface Movimentacao {
   id: string;
@@ -26,7 +21,8 @@ interface Movimentacao {
 }
 
 export default function Estoque() {
-  const [produtos, setProdutos] = useState<Produto[]>(mockProdutos);
+  const { data: produtos = [] } = useProdutos();
+  const queryClient = useQueryClient();
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [movOpen, setMovOpen] = useState(false);
   const [movTipo, setMovTipo] = useState<'entrada' | 'saida'>('entrada');
@@ -35,25 +31,23 @@ export default function Estoque() {
   const [movNf, setMovNf] = useState('');
 
   const openMov = (produtoId: string, tipo: 'entrada' | 'saida') => {
-    setMovProdutoId(produtoId);
-    setMovTipo(tipo);
-    setMovQtd('');
-    setMovNf('');
-    setMovOpen(true);
+    setMovProdutoId(produtoId); setMovTipo(tipo); setMovQtd(''); setMovNf(''); setMovOpen(true);
   };
 
-  const handleMov = () => {
+  const handleMov = async () => {
     const qty = Number(movQtd);
     if (qty <= 0) return;
     const prod = produtos.find(p => p.id === movProdutoId);
     if (!prod) return;
-    setProdutos(produtos.map(p => p.id === movProdutoId ? {
-      ...p, quantidade: movTipo === 'entrada' ? p.quantidade + qty : Math.max(0, p.quantidade - qty)
-    } : p));
+    const newQty = movTipo === 'entrada' ? prod.quantidade + qty : Math.max(0, prod.quantidade - qty);
+    const { error } = await supabase.from('produtos').update({ quantidade: newQty }).eq('id', movProdutoId);
+    if (error) { toast.error('Erro ao registrar movimentação'); return; }
     setMovimentacoes([{
       id: String(Date.now()), produtoId: movProdutoId, produtoNome: prod.nome,
       tipo: movTipo, quantidade: qty, nf: movNf || undefined, data: new Date().toISOString(),
     }, ...movimentacoes]);
+    queryClient.invalidateQueries({ queryKey: ['produtos'] });
+    toast.success('Movimentação registrada!');
     setMovOpen(false);
   };
 
@@ -71,14 +65,8 @@ export default function Estoque() {
               <DialogTitle>{movTipo === 'entrada' ? 'Entrada de Produto' : 'Saída de Produto'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Quantidade</Label>
-                <Input type="number" value={movQtd} onChange={e => setMovQtd(e.target.value)} placeholder="Quantidade" />
-              </div>
-              <div className="space-y-2">
-                <Label>Nota Fiscal (opcional)</Label>
-                <Input value={movNf} onChange={e => setMovNf(e.target.value)} placeholder="Número da NF" />
-              </div>
+              <div className="space-y-2"><Label>Quantidade</Label><Input type="number" value={movQtd} onChange={e => setMovQtd(e.target.value)} placeholder="Quantidade" /></div>
+              <div className="space-y-2"><Label>Nota Fiscal (opcional)</Label><Input value={movNf} onChange={e => setMovNf(e.target.value)} placeholder="Número da NF" /></div>
               <Button className="w-full" onClick={handleMov} disabled={!movQtd || Number(movQtd) <= 0}>
                 {movTipo === 'entrada' ? 'Registrar Entrada' : 'Registrar Saída'}
               </Button>
@@ -86,7 +74,7 @@ export default function Estoque() {
           </DialogContent>
         </Dialog>
 
-        {/* Stock overview - Mobile cards */}
+        {/* Mobile cards */}
         <div className="block sm:hidden space-y-3">
           <h3 className="font-semibold text-base">Produtos em Estoque</h3>
           {produtos.map(p => (
@@ -105,19 +93,15 @@ export default function Estoque() {
                   <span className="text-muted-foreground ml-3">Mín:</span> {p.minimo}
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="outline" size="icon" className="h-8 w-8 text-green-600" onClick={() => openMov(p.id, 'entrada')}>
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => openMov(p.id, 'saida')}>
-                    <ArrowDown className="h-4 w-4" />
-                  </Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8 text-green-600" onClick={() => openMov(p.id, 'entrada')}><ArrowUp className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => openMov(p.id, 'saida')}><ArrowDown className="h-4 w-4" /></Button>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Stock overview - Desktop table */}
+        {/* Desktop table */}
         <div className="hidden sm:block bg-card rounded-xl border border-border animate-fade-in">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -145,12 +129,8 @@ export default function Estoque() {
                     </td>
                     <td className="py-3 px-4 lg:px-6 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" onClick={() => openMov(p.id, 'entrada')} title="Entrada">
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => openMov(p.id, 'saida')} title="Saída">
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" onClick={() => openMov(p.id, 'entrada')} title="Entrada"><ArrowUp className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => openMov(p.id, 'saida')} title="Saída"><ArrowDown className="h-4 w-4" /></Button>
                       </div>
                     </td>
                   </tr>
@@ -168,7 +148,6 @@ export default function Estoque() {
               <div className="p-8 text-center text-muted-foreground font-body text-sm">Nenhuma movimentação registrada.</div>
             ) : (
               <>
-                {/* Mobile cards */}
                 <div className="block sm:hidden p-3 space-y-2">
                   {movimentacoes.map(m => (
                     <div key={m.id} className="border border-border rounded-lg p-3 text-sm">
@@ -185,7 +164,6 @@ export default function Estoque() {
                     </div>
                   ))}
                 </div>
-                {/* Desktop table */}
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
