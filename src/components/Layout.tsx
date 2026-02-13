@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Scissors, Users, Sparkles, Package, Warehouse,
   BarChart3, Calendar, Settings, Menu, LogOut, Bot
@@ -24,7 +25,9 @@ const menuItems = [
 
 function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { settings } = useApp();
+  const { signOut } = useAuth();
 
   const filteredItems = menuItems.filter(item => {
     if (item.modules) {
@@ -63,13 +66,13 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
         })}
       </nav>
       <div className="p-4 border-t border-border">
-        <Link
-          to="/login"
-          className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        <button
+          onClick={async () => { await signOut(); navigate('/login'); }}
+          className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
         >
           <LogOut className="h-5 w-5" />
           Sair
-        </Link>
+        </button>
       </div>
     </div>
   );

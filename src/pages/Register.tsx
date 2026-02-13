@@ -4,17 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Scissors } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [nome, setNome] = useState('');
-  const [barbearia, setBarbearia] = useState('');
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/');
+    setLoading(true);
+    const { error } = await signUp(email, password);
+    setLoading(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success('Conta criada! Verifique seu e-mail para confirmar.');
+    navigate('/login');
   };
 
   return (
@@ -29,17 +39,8 @@ export default function Register() {
           </h1>
           <p className="text-muted-foreground mt-2 font-body">Crie sua conta</p>
         </div>
-
         <div className="bg-card rounded-xl border border-border p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Seu Nome</Label>
-              <Input placeholder="Nome completo" value={nome} onChange={e => setNome(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Nome da Barbearia</Label>
-              <Input placeholder="Ex: Barbearia Premium" value={barbearia} onChange={e => setBarbearia(e.target.value)} />
-            </div>
             <div className="space-y-2">
               <Label>E-mail</Label>
               <Input type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} />
@@ -48,7 +49,9 @@ export default function Register() {
               <Label>Senha</Label>
               <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
-            <Button type="submit" className="w-full">Criar Conta</Button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Criando...' : 'Criar Conta'}
+            </Button>
           </form>
           <p className="text-center text-sm text-muted-foreground mt-6 font-body">
             Já tem conta?{' '}

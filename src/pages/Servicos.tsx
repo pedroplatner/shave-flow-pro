@@ -6,10 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Clock, Pencil } from 'lucide-react';
-import { mockServicos } from '@/data/mock';
+import { useServicos, useBarbershopId } from '@/hooks/useBarbershop';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function Servicos() {
-  const [servicos, setServicos] = useState(mockServicos);
+  const { data: servicos = [] } = useServicos();
+  const { data: bsId } = useBarbershopId();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -19,33 +24,38 @@ export default function Servicos() {
 
   const resetForm = () => { setNome(''); setPreco(''); setDuracao(''); };
 
-  const handleAdd = () => {
-    setServicos([...servicos, {
-      id: String(Date.now()), nome, preco: Number(preco), duracao: Number(duracao), ativo: true
-    }]);
-    resetForm();
-    setOpen(false);
+  const handleAdd = async () => {
+    if (!bsId) return;
+    const { error } = await supabase.from('servicos').insert({
+      barbershop_id: bsId, nome, preco: Number(preco), duracao: Number(duracao),
+    });
+    if (error) { toast.error('Erro ao adicionar'); return; }
+    toast.success('Serviço adicionado!');
+    queryClient.invalidateQueries({ queryKey: ['servicos'] });
+    resetForm(); setOpen(false);
   };
 
   const openEdit = (id: string) => {
     const s = servicos.find(x => x.id === id);
     if (!s) return;
-    setEditId(id);
-    setNome(s.nome);
-    setPreco(String(s.preco));
-    setDuracao(String(s.duracao));
+    setEditId(id); setNome(s.nome); setPreco(String(s.preco)); setDuracao(String(s.duracao));
     setEditOpen(true);
   };
 
-  const handleEdit = () => {
-    setServicos(servicos.map(s => s.id === editId ? { ...s, nome, preco: Number(preco), duracao: Number(duracao) } : s));
-    resetForm();
-    setEditId(null);
-    setEditOpen(false);
+  const handleEdit = async () => {
+    if (!editId) return;
+    const { error } = await supabase.from('servicos').update({ nome, preco: Number(preco), duracao: Number(duracao) }).eq('id', editId);
+    if (error) { toast.error('Erro ao editar'); return; }
+    toast.success('Serviço atualizado!');
+    queryClient.invalidateQueries({ queryKey: ['servicos'] });
+    resetForm(); setEditId(null); setEditOpen(false);
   };
 
-  const toggleAtivo = (id: string) => {
-    setServicos(servicos.map(s => s.id === id ? { ...s, ativo: !s.ativo } : s));
+  const toggleAtivo = async (id: string) => {
+    const s = servicos.find(x => x.id === id);
+    if (!s) return;
+    await supabase.from('servicos').update({ ativo: !s.ativo }).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['servicos'] });
   };
 
   return (
@@ -63,41 +73,22 @@ export default function Servicos() {
             <DialogContent>
               <DialogHeader><DialogTitle>Novo Serviço</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Corte Masculino" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Preço (R$)</Label>
-                  <Input type="number" value={preco} onChange={e => setPreco(e.target.value)} placeholder="0.00" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Duração (minutos)</Label>
-                  <Input type="number" value={duracao} onChange={e => setDuracao(e.target.value)} placeholder="30" />
-                </div>
+                <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Corte Masculino" /></div>
+                <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" value={preco} onChange={e => setPreco(e.target.value)} placeholder="0.00" /></div>
+                <div className="space-y-2"><Label>Duração (minutos)</Label><Input type="number" value={duracao} onChange={e => setDuracao(e.target.value)} placeholder="30" /></div>
                 <Button className="w-full" onClick={handleAdd} disabled={!nome || !preco}>Adicionar</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) { resetForm(); setEditId(null); } }}>
           <DialogContent>
             <DialogHeader><DialogTitle>Editar Serviço</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Nome</Label>
-                <Input value={nome} onChange={e => setNome(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Preço (R$)</Label>
-                <Input type="number" value={preco} onChange={e => setPreco(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Duração (minutos)</Label>
-                <Input type="number" value={duracao} onChange={e => setDuracao(e.target.value)} />
-              </div>
+              <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" value={preco} onChange={e => setPreco(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Duração (minutos)</Label><Input type="number" value={duracao} onChange={e => setDuracao(e.target.value)} /></div>
               <Button className="w-full" onClick={handleEdit} disabled={!nome || !preco}>Salvar Alterações</Button>
             </div>
           </DialogContent>
@@ -119,12 +110,12 @@ export default function Servicos() {
                 {servicos.map(s => (
                   <tr key={s.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                     <td className="py-3 px-6 text-sm font-medium">{s.nome}</td>
-                    <td className="py-3 px-6 text-sm font-body">R$ {s.preco.toFixed(2)}</td>
+                    <td className="py-3 px-6 text-sm font-body">R$ {Number(s.preco).toFixed(2)}</td>
                     <td className="py-3 px-6 text-sm font-body">
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-muted-foreground" />{s.duracao} min</span>
                     </td>
                     <td className="py-3 px-6 text-sm">
-                      <span className={s.ativo ? 'text-success font-medium' : 'text-danger font-medium'}>{s.ativo ? 'Ativo' : 'Inativo'}</span>
+                      <span className={s.ativo ? 'text-green-500 font-medium' : 'text-destructive font-medium'}>{s.ativo ? 'Ativo' : 'Inativo'}</span>
                     </td>
                     <td className="py-3 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">

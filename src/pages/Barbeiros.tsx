@@ -6,10 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Plus, User, Pencil } from 'lucide-react';
-import { mockBarbeiros } from '@/data/mock';
+import { useBarbeiros, useBarbershopId } from '@/hooks/useBarbershop';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function Barbeiros() {
-  const [barbeiros, setBarbeiros] = useState(mockBarbeiros);
+  const { data: barbeiros = [] } = useBarbeiros();
+  const { data: bsId } = useBarbershopId();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -19,33 +24,38 @@ export default function Barbeiros() {
 
   const resetForm = () => { setNome(''); setTelefone(''); setComissao('40'); };
 
-  const handleAdd = () => {
-    setBarbeiros([...barbeiros, {
-      id: String(Date.now()), nome, telefone, ativo: true, comissao: Number(comissao)
-    }]);
-    resetForm();
-    setOpen(false);
+  const handleAdd = async () => {
+    if (!bsId) return;
+    const { error } = await supabase.from('barbeiros').insert({
+      barbershop_id: bsId, nome, telefone, comissao: Number(comissao),
+    });
+    if (error) { toast.error('Erro ao adicionar'); return; }
+    toast.success('Barbeiro adicionado!');
+    queryClient.invalidateQueries({ queryKey: ['barbeiros'] });
+    resetForm(); setOpen(false);
   };
 
   const openEdit = (id: string) => {
     const b = barbeiros.find(x => x.id === id);
     if (!b) return;
-    setEditId(id);
-    setNome(b.nome);
-    setTelefone(b.telefone);
-    setComissao(String(b.comissao));
+    setEditId(id); setNome(b.nome); setTelefone(b.telefone || ''); setComissao(String(b.comissao));
     setEditOpen(true);
   };
 
-  const handleEdit = () => {
-    setBarbeiros(barbeiros.map(b => b.id === editId ? { ...b, nome, telefone, comissao: Number(comissao) } : b));
-    resetForm();
-    setEditId(null);
-    setEditOpen(false);
+  const handleEdit = async () => {
+    if (!editId) return;
+    const { error } = await supabase.from('barbeiros').update({ nome, telefone, comissao: Number(comissao) }).eq('id', editId);
+    if (error) { toast.error('Erro ao editar'); return; }
+    toast.success('Barbeiro atualizado!');
+    queryClient.invalidateQueries({ queryKey: ['barbeiros'] });
+    resetForm(); setEditId(null); setEditOpen(false);
   };
 
-  const toggleAtivo = (id: string) => {
-    setBarbeiros(barbeiros.map(b => b.id === id ? { ...b, ativo: !b.ativo } : b));
+  const toggleAtivo = async (id: string) => {
+    const b = barbeiros.find(x => x.id === id);
+    if (!b) return;
+    await supabase.from('barbeiros').update({ ativo: !b.ativo }).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['barbeiros'] });
   };
 
   return (
@@ -63,41 +73,22 @@ export default function Barbeiros() {
             <DialogContent>
               <DialogHeader><DialogTitle>Novo Barbeiro</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome completo" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Telefone</Label>
-                  <Input value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(11) 99999-0000" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Comissão (%)</Label>
-                  <Input type="number" value={comissao} onChange={e => setComissao(e.target.value)} />
-                </div>
+                <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome completo" /></div>
+                <div className="space-y-2"><Label>Telefone</Label><Input value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(11) 99999-0000" /></div>
+                <div className="space-y-2"><Label>Comissão (%)</Label><Input type="number" value={comissao} onChange={e => setComissao(e.target.value)} /></div>
                 <Button className="w-full" onClick={handleAdd} disabled={!nome}>Adicionar</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) { resetForm(); setEditId(null); } }}>
           <DialogContent>
             <DialogHeader><DialogTitle>Editar Barbeiro</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Nome</Label>
-                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome completo" />
-              </div>
-              <div className="space-y-2">
-                <Label>Telefone</Label>
-                <Input value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(11) 99999-0000" />
-              </div>
-              <div className="space-y-2">
-                <Label>Comissão (%)</Label>
-                <Input type="number" value={comissao} onChange={e => setComissao(e.target.value)} />
-              </div>
+              <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Telefone</Label><Input value={telefone} onChange={e => setTelefone(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Comissão (%)</Label><Input type="number" value={comissao} onChange={e => setComissao(e.target.value)} /></div>
               <Button className="w-full" onClick={handleEdit} disabled={!nome}>Salvar Alterações</Button>
             </div>
           </DialogContent>
@@ -125,7 +116,7 @@ export default function Barbeiros() {
               </div>
               <div className="mt-4 flex items-center justify-between text-sm font-body">
                 <span className="text-muted-foreground">Comissão: {b.comissao}%</span>
-                <span className={b.ativo ? 'text-success font-medium' : 'text-danger font-medium'}>
+                <span className={b.ativo ? 'text-green-500 font-medium' : 'text-destructive font-medium'}>
                   {b.ativo ? 'Ativo' : 'Inativo'}
                 </span>
               </div>
