@@ -26,9 +26,7 @@ export default function Barbeiros() {
 
   const handleAdd = async () => {
     if (!bsId) return;
-    const { error } = await supabase.from('barbeiros').insert({
-      barbershop_id: bsId, nome, telefone, comissao: Number(comissao),
-    });
+    const { error } = await supabase.from('barbeiros').insert({ barbershop_id: bsId, nome, telefone, comissao: Number(comissao) });
     if (error) { toast.error('Erro ao adicionar'); return; }
     toast.success('Barbeiro adicionado!');
     queryClient.invalidateQueries({ queryKey: ['barbeiros'] });
@@ -61,15 +59,13 @@ export default function Barbeiros() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Barbeiros</h2>
-            <p className="text-muted-foreground mt-1 font-body">Gerencie sua equipe</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Barbeiros</h2>
+            <p className="text-muted-foreground mt-1 font-body text-sm">Gerencie sua equipe</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Novo Barbeiro</Button>
-            </DialogTrigger>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Novo Barbeiro</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Novo Barbeiro</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
@@ -94,31 +90,27 @@ export default function Barbeiros() {
           </DialogContent>
         </Dialog>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {barbeiros.map(b => (
-            <div key={b.id} className="bg-card rounded-xl border border-border p-6 animate-fade-in">
+            <div key={b.id} className="bg-card rounded-xl border border-border p-4 sm:p-6 animate-fade-in">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-6 w-6 text-primary" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">{b.nome}</h3>
-                    <p className="text-sm text-muted-foreground font-body">{b.telefone}</p>
+                    <h3 className="font-semibold text-sm sm:text-base">{b.nome}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-body">{b.telefone}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(b.id)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(b.id)}><Pencil className="h-4 w-4" /></Button>
                   <Switch checked={b.ativo} onCheckedChange={() => toggleAtivo(b.id)} />
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-between text-sm font-body">
+              <div className="mt-3 sm:mt-4 flex items-center justify-between text-xs sm:text-sm font-body">
                 <span className="text-muted-foreground">Comissão: {b.comissao}%</span>
-                <span className={b.ativo ? 'text-green-500 font-medium' : 'text-destructive font-medium'}>
-                  {b.ativo ? 'Ativo' : 'Inativo'}
-                </span>
+                <span className={b.ativo ? 'text-green-600 font-medium' : 'text-destructive font-medium'}>{b.ativo ? 'Ativo' : 'Inativo'}</span>
               </div>
             </div>
           ))}

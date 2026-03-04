@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamentos: {
+        Row: {
+          barbeiro: string
+          barbershop_id: string
+          cliente: string
+          created_at: string
+          data: string
+          hora: string
+          id: string
+          servico: string
+          status: string
+        }
+        Insert: {
+          barbeiro: string
+          barbershop_id: string
+          cliente: string
+          created_at?: string
+          data?: string
+          hora: string
+          id?: string
+          servico: string
+          status?: string
+        }
+        Update: {
+          barbeiro?: string
+          barbershop_id?: string
+          cliente?: string
+          created_at?: string
+          data?: string
+          hora?: string
+          id?: string
+          servico?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atendimentos: {
         Row: {
           barbeiro: string
