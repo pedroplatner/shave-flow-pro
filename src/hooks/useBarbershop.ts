@@ -87,3 +87,20 @@ export function useAtendimentos() {
     enabled: !!bsId,
   });
 }
+
+export function useAgendamentos() {
+  const { data: bsId } = useBarbershopId();
+  return useQuery({
+    queryKey: ['agendamentos', bsId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('barbershop_id', bsId!)
+        .order('data', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!bsId,
+  });
+}
