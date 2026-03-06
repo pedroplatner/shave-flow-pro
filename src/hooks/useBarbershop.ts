@@ -104,3 +104,38 @@ export function useAgendamentos() {
     enabled: !!bsId,
   });
 }
+
+export function useCaixaDiario() {
+  const { data: bsId } = useBarbershopId();
+  const hoje = new Date().toISOString().split('T')[0];
+  return useQuery({
+    queryKey: ['caixa_diario', bsId, hoje],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('caixas_diarios')
+        .select('*')
+        .eq('barbershop_id', bsId!)
+        .eq('data', hoje)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!bsId,
+  });
+}
+
+export function useCaixaMovimentacoes(caixaId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['caixa_movimentacoes', caixaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('caixa_movimentacoes')
+        .select('*')
+        .eq('caixa_id', caixaId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!caixaId,
+  });
+}

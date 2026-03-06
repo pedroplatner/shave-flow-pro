@@ -18,6 +18,7 @@ import Relatorios from "./pages/Relatorios";
 import Agendamentos from "./pages/Agendamentos";
 import Configuracoes from "./pages/Configuracoes";
 import AssistenteIA from "./pages/AssistenteIA";
+import Caixa from "./pages/Caixa";
 import NotFound from "./pages/NotFound";
 import FloatingAIChat from "./components/FloatingAIChat";
 
@@ -44,6 +45,7 @@ const AppRoutes = () => (
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/atendimentos" element={<ProtectedRoute><Atendimentos /></ProtectedRoute>} />
+      <Route path="/caixa" element={<ProtectedRoute><Caixa /></ProtectedRoute>} />
       <Route path="/barbeiros" element={<ProtectedRoute><Barbeiros /></ProtectedRoute>} />
       <Route path="/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
       <Route path="/produtos" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
