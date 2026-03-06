@@ -4,7 +4,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Scissors, Users, Sparkles, Package, Warehouse,
-  BarChart3, Calendar, Settings, Menu, LogOut, Bot
+  BarChart3, Calendar, Settings, Menu, LogOut, Bot, Wallet
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Scissors, label: 'Atendimentos', path: '/atendimentos' },
+  { icon: Wallet, label: 'Caixa', path: '/caixa' },
   { icon: Users, label: 'Barbeiros', path: '/barbeiros' },
   { icon: Sparkles, label: 'Serviços', path: '/servicos' },
   { icon: Package, label: 'Produtos', path: '/produtos', modules: ['moduloProdutos'] as const },

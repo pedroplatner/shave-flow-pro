@@ -167,6 +167,92 @@ export type Database = {
         }
         Relationships: []
       }
+      caixa_movimentacoes: {
+        Row: {
+          barbershop_id: string
+          caixa_id: string
+          created_at: string
+          descricao: string
+          id: string
+          origem: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          barbershop_id: string
+          caixa_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          origem?: string
+          tipo: string
+          valor: number
+        }
+        Update: {
+          barbershop_id?: string
+          caixa_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          origem?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caixa_movimentacoes_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "caixa_movimentacoes_caixa_id_fkey"
+            columns: ["caixa_id"]
+            isOneToOne: false
+            referencedRelation: "caixas_diarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      caixas_diarios: {
+        Row: {
+          barbershop_id: string
+          created_at: string
+          data: string
+          id: string
+          status: string
+          valor_fechamento: number | null
+          valor_inicial: number
+        }
+        Insert: {
+          barbershop_id: string
+          created_at?: string
+          data: string
+          id?: string
+          status?: string
+          valor_fechamento?: number | null
+          valor_inicial?: number
+        }
+        Update: {
+          barbershop_id?: string
+          created_at?: string
+          data?: string
+          id?: string
+          status?: string
+          valor_fechamento?: number | null
+          valor_inicial?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caixas_diarios_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           barbershop_id: string
