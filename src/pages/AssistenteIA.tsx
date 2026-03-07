@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, Send, User, Loader2, Sparkles } from 'lucide-react';
-import { useAtendimentos, useBarbeiros, useServicos, useProdutos } from '@/hooks/useBarbershop';
+import { useAtendimentos, useBarbeiros, useServicos, useProdutos, useCaixaDiario, useCaixaMovimentacoes } from '@/hooks/useBarbershop';
 import ReactMarkdown from 'react-markdown';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
@@ -14,6 +14,7 @@ const SUGGESTIONS = [
   'Quais produtos estão com estoque baixo?',
   'Me dê um resumo geral do negócio',
   'Qual serviço gera mais receita?',
+  'Quanto cada barbeiro tem a receber de comissão?',
 ];
 
 export default function AssistenteIA() {
@@ -21,15 +22,15 @@ export default function AssistenteIA() {
   const { data: barbeiros = [] } = useBarbeiros();
   const { data: servicos = [] } = useServicos();
   const { data: produtos = [] } = useProdutos();
+  const { data: caixaHoje } = useCaixaDiario();
+  const { data: movsCaixa = [] } = useCaixaMovimentacoes(caixaHoje?.id);
 
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
 
   const getBusinessData = () => {
     const now = new Date();
@@ -37,16 +38,22 @@ export default function AssistenteIA() {
     const receitaHoje = atendimentos.filter(a => new Date(a.data) >= startOfDay).reduce((acc, a) => acc + Number(a.total), 0);
     const receitaSemanal = atendimentos.filter(a => (now.getTime() - new Date(a.data).getTime()) / 86400000 <= 7).reduce((acc, a) => acc + Number(a.total), 0);
     const receitaMensal = atendimentos.filter(a => (now.getTime() - new Date(a.data).getTime()) / 86400000 <= 30).reduce((acc, a) => acc + Number(a.total), 0);
+
+    const entCaixa = movsCaixa.filter(m => m.tipo === 'entrada').reduce((s, m) => s + Number(m.valor), 0);
+    const saiCaixa = movsCaixa.filter(m => m.tipo === 'saida').reduce((s, m) => s + Number(m.valor), 0);
+    const saldoCaixa = caixaHoje ? Number(caixaHoje.valor_inicial) + entCaixa - saiCaixa : null;
+
     return {
       receitaHoje, receitaSemanal, receitaMensal, totalAtendimentos: atendimentos.length,
-      atendimentos: atendimentos.slice(0, 50).map(a => ({ data: a.data, cliente: a.cliente, barbeiro: a.barbeiro, servicos: a.servicos, total: a.total, formaPagamento: a.forma_pagamento })),
+      caixa: caixaHoje ? { status: caixaHoje.status, valorInicial: caixaHoje.valor_inicial, saldo: saldoCaixa, entradas: entCaixa, saidas: saiCaixa } : null,
+      atendimentos: atendimentos.slice(0, 100).map(a => ({ data: a.data, cliente: a.cliente, barbeiro: a.barbeiro, servicos: a.servicos, produtos: a.produtos, total: a.total, formaPagamento: a.forma_pagamento })),
       barbeiros: barbeiros.map(b => ({
         nome: b.nome, ativo: b.ativo, comissao: b.comissao,
         atendimentos: atendimentos.filter(a => a.barbeiro === b.nome).length,
         receita: atendimentos.filter(a => a.barbeiro === b.nome).reduce((acc, a) => acc + Number(a.total), 0),
       })),
       servicos: servicos.map(s => ({ nome: s.nome, preco: s.preco, duracao: s.duracao, ativo: s.ativo })),
-      produtos: produtos.map(p => ({ nome: p.nome, preco: p.preco, quantidade: p.quantidade, minimo: p.minimo, estoqueBaixo: p.quantidade <= p.minimo })),
+      produtos: produtos.map(p => ({ nome: p.nome, preco: p.preco, quantidade: p.quantidade, minimo: p.minimo, estoqueBaixo: p.quantidade <= p.minimo, custo: (p as any).custo || 0, fornecedor: (p as any).fornecedor || '' })),
     };
   };
 
@@ -58,7 +65,6 @@ export default function AssistenteIA() {
     setIsLoading(true);
     let assistantSoFar = '';
     const allMessages = [...messages, userMsg];
-
     try {
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/barberpro-ai`, {
         method: 'POST',
@@ -107,7 +113,7 @@ export default function AssistenteIA() {
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 sm:space-y-6 px-2">
                 <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-primary/10 flex items-center justify-center"><Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary" /></div>
-                <div><h3 className="text-lg sm:text-xl font-semibold mb-2">Como posso ajudar?</h3><p className="text-muted-foreground font-body text-xs sm:text-sm max-w-md">Tenho acesso a todos os dados da sua barbearia.</p></div>
+                <div><h3 className="text-lg sm:text-xl font-semibold mb-2">Como posso ajudar?</h3><p className="text-muted-foreground font-body text-xs sm:text-sm max-w-md">Tenho acesso a todos os dados da sua barbearia: atendimentos, receitas, comissões, estoque e caixa.</p></div>
                 <div className="flex flex-wrap gap-2 justify-center max-w-lg">{SUGGESTIONS.map((s, i) => <button key={i} onClick={() => send(s)} className="text-xs px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors text-left">{s}</button>)}</div>
               </div>
             )}

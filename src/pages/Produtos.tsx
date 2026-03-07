@@ -10,6 +10,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+function MargemBadge({ preco, custo }: { preco: number; custo: number }) {
+  if (!custo || custo === 0) return <span className="text-muted-foreground">—</span>;
+  const margem = ((preco - custo) / preco) * 100;
+  const color = margem > 40 ? 'text-green-500' : margem >= 20 ? 'text-yellow-500' : 'text-destructive';
+  return <span className={`font-semibold ${color}`}>{margem.toFixed(0)}%</span>;
+}
+
 export default function Produtos() {
   const { data: produtos = [] } = useProdutos();
   const { data: bsId } = useBarbershopId();
@@ -21,13 +28,16 @@ export default function Produtos() {
   const [preco, setPreco] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [minimo, setMinimo] = useState('');
+  const [custo, setCusto] = useState('');
+  const [fornecedor, setFornecedor] = useState('');
 
-  const resetForm = () => { setNome(''); setPreco(''); setQuantidade(''); setMinimo(''); };
+  const resetForm = () => { setNome(''); setPreco(''); setQuantidade(''); setMinimo(''); setCusto(''); setFornecedor(''); };
 
   const handleAdd = async () => {
     if (!bsId) return;
     const { error } = await supabase.from('produtos').insert({
       barbershop_id: bsId, nome, preco: Number(preco), quantidade: Number(quantidade), minimo: Number(minimo),
+      custo: Number(custo) || 0, fornecedor: fornecedor || '',
     });
     if (error) { toast.error('Erro ao adicionar'); return; }
     toast.success('Produto adicionado!');
@@ -39,17 +49,36 @@ export default function Produtos() {
     const p = produtos.find(x => x.id === id);
     if (!p) return;
     setEditId(id); setNome(p.nome); setPreco(String(p.preco)); setQuantidade(String(p.quantidade)); setMinimo(String(p.minimo));
+    setCusto(String((p as any).custo || 0)); setFornecedor((p as any).fornecedor || '');
     setEditOpen(true);
   };
 
   const handleEdit = async () => {
     if (!editId) return;
-    const { error } = await supabase.from('produtos').update({ nome, preco: Number(preco), quantidade: Number(quantidade), minimo: Number(minimo) }).eq('id', editId);
+    const { error } = await supabase.from('produtos').update({
+      nome, preco: Number(preco), quantidade: Number(quantidade), minimo: Number(minimo),
+      custo: Number(custo) || 0, fornecedor: fornecedor || '',
+    }).eq('id', editId);
     if (error) { toast.error('Erro ao editar'); return; }
     toast.success('Produto atualizado!');
     queryClient.invalidateQueries({ queryKey: ['produtos'] });
     resetForm(); setEditId(null); setEditOpen(false);
   };
+
+  const formFields = (
+    <>
+      <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome do produto" /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" value={preco} onChange={e => setPreco(e.target.value)} /></div>
+        <div className="space-y-2"><Label>Custo (R$)</Label><Input type="number" value={custo} onChange={e => setCusto(e.target.value)} placeholder="Opcional" /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2"><Label>Quantidade</Label><Input type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} /></div>
+        <div className="space-y-2"><Label>Estoque Mínimo</Label><Input type="number" value={minimo} onChange={e => setMinimo(e.target.value)} /></div>
+      </div>
+      <div className="space-y-2"><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} placeholder="Fornecedor (opcional)" /></div>
+    </>
+  );
 
   return (
     <Layout>
@@ -66,10 +95,7 @@ export default function Produtos() {
             <DialogContent>
               <DialogHeader><DialogTitle>Novo Produto</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome do produto" /></div>
-                <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" value={preco} onChange={e => setPreco(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Quantidade Inicial</Label><Input type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Estoque Mínimo</Label><Input type="number" value={minimo} onChange={e => setMinimo(e.target.value)} /></div>
+                {formFields}
                 <Button className="w-full" onClick={handleAdd} disabled={!nome || !preco}>Adicionar</Button>
               </div>
             </DialogContent>
@@ -80,10 +106,7 @@ export default function Produtos() {
           <DialogContent>
             <DialogHeader><DialogTitle>Editar Produto</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
-              <div className="space-y-2"><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Preço (R$)</Label><Input type="number" value={preco} onChange={e => setPreco(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Quantidade</Label><Input type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Estoque Mínimo</Label><Input type="number" value={minimo} onChange={e => setMinimo(e.target.value)} /></div>
+              {formFields}
               <Button className="w-full" onClick={handleEdit} disabled={!nome || !preco}>Salvar Alterações</Button>
             </div>
           </DialogContent>
@@ -94,13 +117,17 @@ export default function Produtos() {
           {produtos.map(p => (
             <div key={p.id} className="bg-card rounded-xl border border-border p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">{p.nome}</span>
+                <div>
+                  <span className="font-semibold">{p.nome}</span>
+                  {(p as any).fornecedor && <p className="text-xs text-muted-foreground">{(p as any).fornecedor}</p>}
+                </div>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p.id)}>
                   <Pencil className="h-4 w-4" />
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div><span className="text-muted-foreground">Preço:</span> <span className="font-medium">R$ {Number(p.preco).toFixed(2)}</span></div>
+                <div><span className="text-muted-foreground">Margem:</span> <MargemBadge preco={Number(p.preco)} custo={Number((p as any).custo || 0)} /></div>
                 <div><span className="text-muted-foreground">Qtd:</span> <span className="font-bold">{p.quantidade}</span></div>
                 <div><span className="text-muted-foreground">Mín:</span> {p.minimo}</div>
               </div>
@@ -116,6 +143,8 @@ export default function Produtos() {
                 <tr className="border-b border-border">
                   <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Produto</th>
                   <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Preço</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Custo</th>
+                  <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Margem</th>
                   <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Qtd</th>
                   <th className="text-left py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Mín</th>
                   <th className="text-right py-3 px-4 lg:px-6 text-xs text-muted-foreground font-medium uppercase tracking-wider">Ações</th>
@@ -124,8 +153,13 @@ export default function Produtos() {
               <tbody>
                 {produtos.map(p => (
                   <tr key={p.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-4 lg:px-6 text-sm font-medium">{p.nome}</td>
+                    <td className="py-3 px-4 lg:px-6">
+                      <span className="text-sm font-medium">{p.nome}</span>
+                      {(p as any).fornecedor && <p className="text-xs text-muted-foreground">{(p as any).fornecedor}</p>}
+                    </td>
                     <td className="py-3 px-4 lg:px-6 text-sm font-body">R$ {Number(p.preco).toFixed(2)}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm font-body">{Number((p as any).custo || 0) > 0 ? `R$ ${Number((p as any).custo).toFixed(2)}` : '—'}</td>
+                    <td className="py-3 px-4 lg:px-6 text-sm"><MargemBadge preco={Number(p.preco)} custo={Number((p as any).custo || 0)} /></td>
                     <td className="py-3 px-4 lg:px-6 text-sm font-bold">{p.quantidade}</td>
                     <td className="py-3 px-4 lg:px-6 text-sm text-muted-foreground font-body">{p.minimo}</td>
                     <td className="py-3 px-4 lg:px-6 text-right">

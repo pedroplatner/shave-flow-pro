@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Minus } from 'lucide-react';
-import { useBarbeiros, useServicos, useAtendimentos, useBarbershopId, useProdutos } from '@/hooks/useBarbershop';
+import { useBarbeiros, useServicos, useAtendimentos, useBarbershopId, useProdutos, useCaixaDiario } from '@/hooks/useBarbershop';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ export default function Atendimentos() {
   const { data: atendimentos = [] } = useAtendimentos();
   const { data: produtos = [] } = useProdutos();
   const { data: bsId } = useBarbershopId();
+  const { data: caixaHoje } = useCaixaDiario();
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
@@ -39,7 +40,6 @@ export default function Atendimentos() {
   const [obs, setObs] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Edit state
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editCliente, setEditCliente] = useState('');
@@ -116,6 +116,21 @@ export default function Atendimentos() {
       await supabase.from('produtos').update({
         quantidade: Math.max(0, (produtos.find(x => x.id === p.id)?.quantidade || 0) - p.quantidade),
       }).eq('id', p.id);
+    }
+
+    // Auto-feed caixa if open today
+    if (caixaHoje && caixaHoje.status === 'aberto') {
+      const descCaixa = `Atendimento - ${barbeiroNome}${cliente ? ` / ${cliente}` : ''}`;
+      await supabase.from('caixa_movimentacoes').insert({
+        caixa_id: caixaHoje.id,
+        barbershop_id: bsId,
+        tipo: 'entrada',
+        descricao: descCaixa,
+        valor: total,
+        origem: 'atendimento',
+      });
+      queryClient.invalidateQueries({ queryKey: ['caixa_movimentacoes'] });
+      queryClient.invalidateQueries({ queryKey: ['caixa_diario'] });
     }
 
     setSaving(false);
@@ -207,7 +222,6 @@ export default function Atendimentos() {
                 </div>
                 <div className="space-y-3"><Label>Serviços</Label>{servicoCheckList(servicosSel, toggleServico)}</div>
 
-                {/* Produtos - estilo carrinho */}
                 <div className="space-y-3">
                   <Label>Produtos</Label>
                   <div className="flex gap-2">
@@ -273,7 +287,6 @@ export default function Atendimentos() {
           </Sheet>
         </div>
 
-        {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) setEditId(null); }}>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
             <DialogHeader><DialogTitle>Editar Atendimento</DialogTitle></DialogHeader>
