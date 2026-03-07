@@ -13,9 +13,7 @@ import Atendimentos from "./pages/Atendimentos";
 import Barbeiros from "./pages/Barbeiros";
 import Servicos from "./pages/Servicos";
 import Produtos from "./pages/Produtos";
-import Estoque from "./pages/Estoque";
 import Relatorios from "./pages/Relatorios";
-import Agendamentos from "./pages/Agendamentos";
 import Configuracoes from "./pages/Configuracoes";
 import AssistenteIA from "./pages/AssistenteIA";
 import Caixa from "./pages/Caixa";
@@ -49,9 +47,7 @@ const AppRoutes = () => (
       <Route path="/barbeiros" element={<ProtectedRoute><Barbeiros /></ProtectedRoute>} />
       <Route path="/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
       <Route path="/produtos" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
-      <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
-      <Route path="/agendamentos" element={<ProtectedRoute><Agendamentos /></ProtectedRoute>} />
       <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
       <Route path="/assistente-ia" element={<ProtectedRoute><AssistenteIA /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />

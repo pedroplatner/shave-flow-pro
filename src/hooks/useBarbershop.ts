@@ -139,3 +139,38 @@ export function useCaixaMovimentacoes(caixaId: string | null | undefined) {
     enabled: !!caixaId,
   });
 }
+
+export function useCaixaHistorico() {
+  const { data: bsId } = useBarbershopId();
+  return useQuery({
+    queryKey: ['caixa_historico', bsId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('caixas_diarios')
+        .select('*')
+        .eq('barbershop_id', bsId!)
+        .order('data', { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!bsId,
+  });
+}
+
+export function useCaixaMovimentacoesByCaixaIds(caixaIds: string[]) {
+  return useQuery({
+    queryKey: ['caixa_movimentacoes_bulk', caixaIds],
+    queryFn: async () => {
+      if (caixaIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('caixa_movimentacoes')
+        .select('*')
+        .in('caixa_id', caixaIds)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: caixaIds.length > 0,
+  });
+}

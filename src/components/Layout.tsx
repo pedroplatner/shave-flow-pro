@@ -3,8 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  LayoutDashboard, Scissors, Users, Sparkles, Package, Warehouse,
-  BarChart3, Calendar, Settings, Menu, LogOut, Bot, Wallet
+  LayoutDashboard, Scissors, Users, Sparkles, Package,
+  BarChart3, Settings, Menu, LogOut, Bot, Wallet
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,7 @@ const menuItems = [
   { icon: Users, label: 'Barbeiros', path: '/barbeiros' },
   { icon: Sparkles, label: 'Serviços', path: '/servicos' },
   { icon: Package, label: 'Produtos', path: '/produtos', modules: ['moduloProdutos'] as const },
-  { icon: Warehouse, label: 'Estoque', path: '/estoque', modules: ['moduloEstoque'] as const },
   { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
-  { icon: Calendar, label: 'Agendamentos', path: '/agendamentos', modules: ['moduloAgendamentos'] as const },
   { icon: Bot, label: 'Assistente IA', path: '/assistente-ia', modules: ['moduloIA'] as const },
   { icon: Settings, label: 'Configurações', path: '/configuracoes' },
 ];

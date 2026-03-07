@@ -3,7 +3,7 @@ import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
-import { useAtendimentos, useBarbeiros, useServicos, useProdutos } from '@/hooks/useBarbershop';
+import { useAtendimentos, useBarbeiros, useServicos, useProdutos, useCaixaDiario, useCaixaMovimentacoes } from '@/hooks/useBarbershop';
 import ReactMarkdown from 'react-markdown';
 import { useLocation } from 'react-router-dom';
 
@@ -16,6 +16,8 @@ export default function FloatingAIChat() {
   const { data: barbeiros = [] } = useBarbeiros();
   const { data: servicos = [] } = useServicos();
   const { data: produtos = [] } = useProdutos();
+  const { data: caixaHoje } = useCaixaDiario();
+  const { data: movsCaixa = [] } = useCaixaMovimentacoes(caixaHoje?.id);
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -33,12 +35,22 @@ export default function FloatingAIChat() {
     const receitaHoje = atendimentos.filter(a => new Date(a.data) >= startOfDay).reduce((acc, a) => acc + Number(a.total), 0);
     const receitaSemanal = atendimentos.filter(a => (now.getTime() - new Date(a.data).getTime()) / 86400000 <= 7).reduce((acc, a) => acc + Number(a.total), 0);
     const receitaMensal = atendimentos.filter(a => (now.getTime() - new Date(a.data).getTime()) / 86400000 <= 30).reduce((acc, a) => acc + Number(a.total), 0);
+
+    const entCaixa = movsCaixa.filter(m => m.tipo === 'entrada').reduce((s, m) => s + Number(m.valor), 0);
+    const saiCaixa = movsCaixa.filter(m => m.tipo === 'saida').reduce((s, m) => s + Number(m.valor), 0);
+    const saldoCaixa = caixaHoje ? Number(caixaHoje.valor_inicial) + entCaixa - saiCaixa : null;
+
     return {
       receitaHoje, receitaSemanal, receitaMensal, totalAtendimentos: atendimentos.length,
-      atendimentos: atendimentos.slice(0, 50).map(a => ({ data: a.data, cliente: a.cliente, barbeiro: a.barbeiro, servicos: a.servicos, total: a.total, formaPagamento: a.forma_pagamento })),
-      barbeiros: barbeiros.map(b => ({ nome: b.nome, ativo: b.ativo, comissao: b.comissao, atendimentos: atendimentos.filter(a => a.barbeiro === b.nome).length, receita: atendimentos.filter(a => a.barbeiro === b.nome).reduce((acc, a) => acc + Number(a.total), 0) })),
+      caixa: caixaHoje ? { status: caixaHoje.status, valorInicial: caixaHoje.valor_inicial, saldo: saldoCaixa, entradas: entCaixa, saidas: saiCaixa } : null,
+      atendimentos: atendimentos.slice(0, 100).map(a => ({ data: a.data, cliente: a.cliente, barbeiro: a.barbeiro, servicos: a.servicos, produtos: a.produtos, total: a.total, formaPagamento: a.forma_pagamento })),
+      barbeiros: barbeiros.map(b => ({
+        nome: b.nome, ativo: b.ativo, comissao: b.comissao,
+        atendimentos: atendimentos.filter(a => a.barbeiro === b.nome).length,
+        receita: atendimentos.filter(a => a.barbeiro === b.nome).reduce((acc, a) => acc + Number(a.total), 0),
+      })),
       servicos: servicos.map(s => ({ nome: s.nome, preco: s.preco, duracao: s.duracao, ativo: s.ativo })),
-      produtos: produtos.map(p => ({ nome: p.nome, preco: p.preco, quantidade: p.quantidade, minimo: p.minimo, estoqueBaixo: p.quantidade <= p.minimo })),
+      produtos: produtos.map(p => ({ nome: p.nome, preco: p.preco, quantidade: p.quantidade, minimo: p.minimo, estoqueBaixo: p.quantidade <= p.minimo, custo: (p as any).custo || 0, fornecedor: (p as any).fornecedor || '' })),
     };
   };
 
