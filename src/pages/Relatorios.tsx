@@ -152,7 +152,7 @@ export default function Relatorios() {
       cols2.forEach((c, i) => pdf.text(c, xs[i], y + 5.5));
       y += 8; pdf.setTextColor(0); pdf.setFont('helvetica', 'normal');
       comissoesPorBarbeiro.forEach((b, i) => {
-        if (i % 2 === 0) { pdf.setFillColor(248); pdf.rect(14, y, pageWidth - 28, 7, 'F'); }
+        if (i % 2 === 0) { pdf.setFillColor(248, 248, 248); pdf.rect(14, y, pageWidth - 28, 7, 'F'); }
         const vals = [b.nome, String(b.atendimentos), `R$ ${b.receita.toFixed(2)}`, `R$ ${b.comServicos.toFixed(2)}`, `R$ ${b.comProdutos.toFixed(2)}`, `R$ ${b.total.toFixed(2)}`];
         vals.forEach((v, j) => pdf.text(v.substring(0, 22), xs[j], y + 5));
         y += 7;
