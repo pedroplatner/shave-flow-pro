@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useProdutos, useBarbershopId } from '@/hooks/useBarbershop';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,6 +31,8 @@ export default function Produtos() {
   const [minimo, setMinimo] = useState('');
   const [custo, setCusto] = useState('');
   const [fornecedor, setFornecedor] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteNome, setDeleteNome] = useState('');
 
   const resetForm = () => { setNome(''); setPreco(''); setQuantidade(''); setMinimo(''); setCusto(''); setFornecedor(''); };
 
@@ -63,6 +66,15 @@ export default function Produtos() {
     toast.success('Produto atualizado!');
     queryClient.invalidateQueries({ queryKey: ['produtos'] });
     resetForm(); setEditId(null); setEditOpen(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from('produtos').delete().eq('id', deleteId);
+    if (error) { toast.error('Erro ao excluir'); return; }
+    toast.success('Produto excluído!');
+    queryClient.invalidateQueries({ queryKey: ['produtos'] });
+    setDeleteId(null); setDeleteNome('');
   };
 
   const formFields = (
@@ -112,6 +124,20 @@ export default function Produtos() {
           </DialogContent>
         </Dialog>
 
+        {/* Delete confirmation */}
+        <AlertDialog open={!!deleteId} onOpenChange={v => { if (!v) { setDeleteId(null); setDeleteNome(''); } }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir "{deleteNome}"?</AlertDialogTitle>
+              <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Mobile card view */}
         <div className="block sm:hidden space-y-3">
           {produtos.map(p => (
@@ -121,9 +147,14 @@ export default function Produtos() {
                   <span className="font-semibold">{p.nome}</span>
                   {(p as any).fornecedor && <p className="text-xs text-muted-foreground">{(p as any).fornecedor}</p>}
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p.id)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p.id)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { setDeleteId(p.id); setDeleteNome(p.nome); }}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div><span className="text-muted-foreground">Preço:</span> <span className="font-medium">R$ {Number(p.preco).toFixed(2)}</span></div>
@@ -163,9 +194,14 @@ export default function Produtos() {
                     <td className="py-3 px-4 lg:px-6 text-sm font-bold">{p.quantidade}</td>
                     <td className="py-3 px-4 lg:px-6 text-sm text-muted-foreground font-body">{p.minimo}</td>
                     <td className="py-3 px-4 lg:px-6 text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p.id)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p.id)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { setDeleteId(p.id); setDeleteNome(p.nome); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
