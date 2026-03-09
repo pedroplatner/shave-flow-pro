@@ -1,13 +1,34 @@
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { useApp } from '@/contexts/AppContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
-import { Package, Moon, Sun, Bot } from 'lucide-react';
+import { Package, Moon, Sun, Bot, ShieldCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Configuracoes() {
   const { settings, updateSettings } = useApp();
   const { theme, setTheme } = useTheme();
+
+  const [pin, setPin] = useState('');
+  const [hasPin, setHasPin] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    setHasPin(!!localStorage.getItem('caixa_pin'));
+  }, []);
+
+  const handleSavePin = () => {
+    if (pin.length !== 4) { toast.error('PIN deve ter 4 dígitos'); return; }
+    localStorage.setItem('caixa_pin', pin);
+    setHasPin(true);
+    setEditing(false);
+    setPin('');
+    toast.success('PIN salvo!');
+  };
 
   const modules = [
     { key: 'moduloProdutos' as const, label: 'Produtos', desc: 'Vender produtos nos atendimentos', icon: Package },
@@ -52,6 +73,42 @@ export default function Configuracoes() {
                 </div>
               </div>
               <Switch checked={theme === 'dark'} onCheckedChange={v => setTheme(v ? 'dark' : 'light')} />
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
+            <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-muted-foreground" /> Segurança do Caixa
+            </h3>
+            <div className="space-y-4">
+              {hasPin && !editing ? (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">PIN configurado</p>
+                    <p className="text-sm text-muted-foreground font-mono tracking-widest">****</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Alterar PIN</Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label>PIN de 4 dígitos</Label>
+                    <Input
+                      type="password"
+                      maxLength={4}
+                      placeholder="0000"
+                      value={pin}
+                      onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className="max-w-[160px] text-center text-lg tracking-[0.5em] font-mono"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleSavePin} disabled={pin.length !== 4}>Salvar PIN</Button>
+                    {editing && <Button variant="ghost" size="sm" onClick={() => { setEditing(false); setPin(''); }}>Cancelar</Button>}
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">O PIN protege ações sensíveis do caixa como editar movimentações, excluir e reabrir o caixa.</p>
             </div>
           </div>
         </div>

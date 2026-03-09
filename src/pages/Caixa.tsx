@@ -3,16 +3,17 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Wallet, ArrowUpCircle, ArrowDownCircle, Lock, ChevronDown, History } from 'lucide-react';
+import { Wallet, ArrowUpCircle, ArrowDownCircle, Lock, ChevronDown, History, Pencil, Trash2, Unlock } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import { useCaixaDiario, useCaixaMovimentacoes, useBarbershopId, useCaixaHistorico, useCaixaMovimentacoesByCaixaIds } from '@/hooks/useBarbershop';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import PinDialog, { withPinVerification } from '@/components/PinDialog';
 
 function MovBadge({ tipo, origem }: { tipo: string; origem: string }) {
   if (tipo === 'saida') return <Badge variant="destructive" className="shrink-0">Saída</Badge>;
@@ -20,17 +21,26 @@ function MovBadge({ tipo, origem }: { tipo: string; origem: string }) {
   return <Badge className="shrink-0 bg-green-600 hover:bg-green-700">Entrada</Badge>;
 }
 
-function MovItem({ m }: { m: any }) {
+function MovItem({ m, caixaAberto, onEdit, onDelete }: { m: any; caixaAberto: boolean; onEdit?: (m: any) => void; onDelete?: (m: any) => void }) {
+  const isManual = m.origem !== 'atendimento';
   return (
-    <div className="bg-card border border-border rounded-lg p-3 flex items-center justify-between gap-3">
+    <div className="bg-card border border-border rounded-lg p-3 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         <span className="text-xs text-muted-foreground shrink-0">{new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
         <MovBadge tipo={m.tipo} origem={m.origem} />
         <span className="text-sm truncate">{m.descricao}</span>
       </div>
-      <span className={`font-semibold text-sm shrink-0 ${m.tipo === 'entrada' ? 'text-green-500' : 'text-destructive'}`}>
-        {m.tipo === 'entrada' ? '+' : '-'} R$ {Number(m.valor).toFixed(2)}
-      </span>
+      <div className="flex items-center gap-1 shrink-0">
+        <span className={`font-semibold text-sm ${m.tipo === 'entrada' ? 'text-green-500' : 'text-destructive'}`}>
+          {m.tipo === 'entrada' ? '+' : '-'} R$ {Number(m.valor).toFixed(2)}
+        </span>
+        {caixaAberto && isManual && onEdit && onDelete && (
+          <>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(m)}><Trash2 className="h-3.5 w-3.5" /></Button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -53,34 +63,48 @@ export default function Caixa() {
   const [movValor, setMovValor] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Edit mov state
+  const [editMovOpen, setEditMovOpen] = useState(false);
+  const [editMovId, setEditMovId] = useState<string | null>(null);
+  const [editMovDescricao, setEditMovDescricao] = useState('');
+
+  // Delete mov state
+  const [deleteMovId, setDeleteMovId] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+  // PIN state
+  const [pinOpen, setPinOpen] = useState(false);
+  const [pinAction, setPinAction] = useState<(() => void) | null>(null);
+
   const totalEntradas = movimentacoes.filter(m => m.tipo === 'entrada').reduce((s, m) => s + Number(m.valor), 0);
   const totalSaidas = movimentacoes.filter(m => m.tipo === 'saida').reduce((s, m) => s + Number(m.valor), 0);
   const saldoAtual = Number(caixa?.valor_inicial || 0) + totalEntradas - totalSaidas;
 
+  const invalidateCaixa = () => {
+    queryClient.invalidateQueries({ queryKey: ['caixa_diario'] });
+    queryClient.invalidateQueries({ queryKey: ['caixa_movimentacoes'] });
+    queryClient.invalidateQueries({ queryKey: ['caixa_historico'] });
+    queryClient.invalidateQueries({ queryKey: ['caixa_movimentacoes_bulk'] });
+  };
+
   const handleAbrirCaixa = async () => {
     if (!bsId) return;
     setSaving(true);
-    const { error } = await supabase.from('caixas_diarios').insert({
-      barbershop_id: bsId, data: hoje, valor_inicial: parseFloat(valorInicial) || 0, status: 'aberto',
-    });
+    const { error } = await supabase.from('caixas_diarios').insert({ barbershop_id: bsId, data: hoje, valor_inicial: parseFloat(valorInicial) || 0, status: 'aberto' });
     setSaving(false);
     if (error) { toast.error('Erro ao abrir caixa'); return; }
     toast.success('Caixa aberto!');
-    queryClient.invalidateQueries({ queryKey: ['caixa_diario'] });
-    queryClient.invalidateQueries({ queryKey: ['caixa_historico'] });
+    invalidateCaixa();
   };
 
   const handleAddMov = async () => {
     if (!caixa || !bsId || !movDialog) return;
     setSaving(true);
-    const { error } = await supabase.from('caixa_movimentacoes').insert({
-      caixa_id: caixa.id, barbershop_id: bsId, tipo: movDialog,
-      descricao: movDescricao, valor: parseFloat(movValor) || 0, origem: 'manual',
-    });
+    const { error } = await supabase.from('caixa_movimentacoes').insert({ caixa_id: caixa.id, barbershop_id: bsId, tipo: movDialog, descricao: movDescricao, valor: parseFloat(movValor) || 0, origem: 'manual' });
     setSaving(false);
     if (error) { toast.error('Erro ao registrar'); return; }
     toast.success(movDialog === 'entrada' ? 'Entrada registrada!' : 'Saída registrada!');
-    queryClient.invalidateQueries({ queryKey: ['caixa_movimentacoes'] });
+    invalidateCaixa();
     setMovDialog(null); setMovDescricao(''); setMovValor('');
   };
 
@@ -91,8 +115,58 @@ export default function Caixa() {
     setSaving(false);
     if (error) { toast.error('Erro ao fechar caixa'); return; }
     toast.success('Caixa fechado!');
-    queryClient.invalidateQueries({ queryKey: ['caixa_diario'] });
-    queryClient.invalidateQueries({ queryKey: ['caixa_historico'] });
+    invalidateCaixa();
+  };
+
+  const doReabrirCaixa = async () => {
+    if (!caixa) return;
+    setSaving(true);
+    const { error } = await supabase.from('caixas_diarios').update({ status: 'aberto', valor_fechamento: null }).eq('id', caixa.id);
+    setSaving(false);
+    if (error) { toast.error('Erro ao reabrir caixa'); return; }
+    toast.success('Caixa reaberto!');
+    invalidateCaixa();
+  };
+
+  const handleReabrirCaixa = () => {
+    withPinVerification(doReabrirCaixa, setPinOpen, (fn) => setPinAction(() => fn));
+  };
+
+  const handleEditMov = (m: any) => {
+    withPinVerification(() => {
+      setEditMovId(m.id);
+      setEditMovDescricao(m.descricao);
+      setEditMovOpen(true);
+    }, setPinOpen, (fn) => setPinAction(() => fn));
+  };
+
+  const handleSaveEditMov = async () => {
+    if (!editMovId) return;
+    setSaving(true);
+    const { error } = await supabase.from('caixa_movimentacoes').update({ descricao: editMovDescricao }).eq('id', editMovId);
+    setSaving(false);
+    if (error) { toast.error('Erro ao editar'); return; }
+    toast.success('Movimentação atualizada!');
+    invalidateCaixa();
+    setEditMovOpen(false); setEditMovId(null);
+  };
+
+  const handleDeleteMov = (m: any) => {
+    withPinVerification(() => {
+      setDeleteMovId(m.id);
+      setDeleteConfirmOpen(true);
+    }, setPinOpen, (fn) => setPinAction(() => fn));
+  };
+
+  const confirmDeleteMov = async () => {
+    if (!deleteMovId) return;
+    setSaving(true);
+    const { error } = await supabase.from('caixa_movimentacoes').delete().eq('id', deleteMovId);
+    setSaving(false);
+    if (error) { toast.error('Erro ao excluir'); return; }
+    toast.success('Movimentação excluída!');
+    invalidateCaixa();
+    setDeleteConfirmOpen(false); setDeleteMovId(null);
   };
 
   const HistoricoSection = () => {
@@ -128,12 +202,11 @@ export default function Caixa() {
                       <div className="bg-card rounded-lg p-3 text-center"><p className="text-xs text-muted-foreground">Saídas</p><p className="font-semibold text-sm text-destructive">R$ {sai.toFixed(2)}</p></div>
                       <div className="bg-card rounded-lg p-3 text-center"><p className="text-xs text-muted-foreground">Saldo</p><p className="font-bold text-sm text-primary">R$ {saldo.toFixed(2)}</p></div>
                     </div>
-                    {movs.length > 0 && (
-                      <div className="space-y-2">
-                        {movs.map(m => <MovItem key={m.id} m={m} />)}
-                      </div>
+                    {movs.length > 0 ? (
+                      <div className="space-y-2">{movs.map(m => <MovItem key={m.id} m={m} caixaAberto={false} />)}</div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-2">Sem movimentações</p>
                     )}
-                    {movs.length === 0 && <p className="text-sm text-muted-foreground text-center py-2">Sem movimentações</p>}
                   </div>
                 </CollapsibleContent>
               </Collapsible>
@@ -182,18 +255,24 @@ export default function Caixa() {
             <StatCard title="Total Saídas" value={`R$ ${totalSaidas.toFixed(2)}`} icon={ArrowDownCircle} />
             <StatCard title="Valor Fechamento" value={`R$ ${Number(caixa.valor_fechamento).toFixed(2)}`} icon={Lock} />
           </div>
-          <div className="bg-card border border-border rounded-xl p-6 text-center">
+
+          <div className="bg-card border border-border rounded-xl p-6 text-center space-y-3">
             <Lock className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Caixa encerrado. Um novo caixa poderá ser aberto amanhã.</p>
+            <p className="text-muted-foreground">Caixa encerrado.</p>
+            <Button variant="outline" onClick={handleReabrirCaixa} disabled={saving}>
+              <Unlock className="h-4 w-4 mr-2" /> Reabrir Caixa
+            </Button>
           </div>
+
           {movimentacoes.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-semibold text-lg">Movimentações do dia</h3>
-              {movimentacoes.map(m => <MovItem key={m.id} m={m} />)}
+              {movimentacoes.map(m => <MovItem key={m.id} m={m} caixaAberto={false} />)}
             </div>
           )}
           <HistoricoSection />
         </div>
+        <PinDialog open={pinOpen} onOpenChange={setPinOpen} onConfirm={() => { if (pinAction) pinAction(); }} />
       </Layout>
     );
   }
@@ -226,6 +305,7 @@ export default function Caixa() {
           </Button>
         </div>
 
+        {/* Add mov dialog */}
         <Dialog open={!!movDialog} onOpenChange={v => { if (!v) setMovDialog(null); }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader><DialogTitle>{movDialog === 'entrada' ? 'Registrar Entrada' : 'Registrar Saída'}</DialogTitle></DialogHeader>
@@ -245,11 +325,41 @@ export default function Caixa() {
           </DialogContent>
         </Dialog>
 
+        {/* Edit mov dialog */}
+        <Dialog open={editMovOpen} onOpenChange={v => { if (!v) { setEditMovOpen(false); setEditMovId(null); } }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader><DialogTitle>Editar Descrição</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Descrição</Label>
+                <Input value={editMovDescricao} onChange={e => setEditMovDescricao(e.target.value)} />
+              </div>
+              <Button className="w-full" onClick={handleSaveEditMov} disabled={!editMovDescricao || saving}>
+                {saving ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete mov confirm */}
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Movimentação?</AlertDialogTitle>
+              <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteMov}>Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <div className="space-y-3">
           <h3 className="font-semibold text-lg">Movimentações</h3>
           {movimentacoes.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-6">Nenhuma movimentação registrada.</p>
-          ) : movimentacoes.map(m => <MovItem key={m.id} m={m} />)}
+          ) : movimentacoes.map(m => <MovItem key={m.id} m={m} caixaAberto onEdit={handleEditMov} onDelete={handleDeleteMov} />)}
         </div>
 
         <div className="pt-4 border-t border-border">
@@ -263,7 +373,7 @@ export default function Caixa() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Fechar Caixa do Dia?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  O saldo atual é <strong className="text-foreground">R$ {saldoAtual.toFixed(2)}</strong>. Após fechar, não será possível adicionar novas movimentações hoje.
+                  O saldo atual é <strong className="text-foreground">R$ {saldoAtual.toFixed(2)}</strong>. Após fechar, não será possível adicionar novas movimentações.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -276,6 +386,7 @@ export default function Caixa() {
 
         <HistoricoSection />
       </div>
+      <PinDialog open={pinOpen} onOpenChange={setPinOpen} onConfirm={() => { if (pinAction) pinAction(); }} />
     </Layout>
   );
 }
