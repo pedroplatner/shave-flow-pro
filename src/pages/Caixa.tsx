@@ -137,7 +137,7 @@ export default function Caixa() {
       setEditMovId(m.id);
       setEditMovDescricao(m.descricao);
       setEditMovOpen(true);
-    }, setPinOpen, (fn) => setPinAction(() => fn));
+    }, setPinOpen, setPinAction);
   };
 
   const handleSaveEditMov = async () => {
