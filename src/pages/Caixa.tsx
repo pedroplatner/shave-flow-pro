@@ -129,7 +129,7 @@ export default function Caixa() {
   };
 
   const handleReabrirCaixa = () => {
-    withPinVerification(doReabrirCaixa, setPinOpen, (fn) => setPinAction(() => fn));
+    withPinVerification(doReabrirCaixa, setPinOpen, setPinAction);
   };
 
   const handleEditMov = (m: any) => {
