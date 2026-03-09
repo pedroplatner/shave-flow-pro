@@ -129,7 +129,7 @@ export default function Caixa() {
   };
 
   const handleReabrirCaixa = () => {
-    withPinVerification(doReabrirCaixa, setPinOpen, (fn) => setPinAction(() => fn));
+    withPinVerification(doReabrirCaixa, setPinOpen, setPinAction);
   };
 
   const handleEditMov = (m: any) => {
@@ -137,7 +137,7 @@ export default function Caixa() {
       setEditMovId(m.id);
       setEditMovDescricao(m.descricao);
       setEditMovOpen(true);
-    }, setPinOpen, (fn) => setPinAction(() => fn));
+    }, setPinOpen, setPinAction);
   };
 
   const handleSaveEditMov = async () => {
@@ -155,7 +155,7 @@ export default function Caixa() {
     withPinVerification(() => {
       setDeleteMovId(m.id);
       setDeleteConfirmOpen(true);
-    }, setPinOpen, (fn) => setPinAction(() => fn));
+    }, setPinOpen, setPinAction);
   };
 
   const confirmDeleteMov = async () => {
