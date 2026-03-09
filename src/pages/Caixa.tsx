@@ -155,7 +155,7 @@ export default function Caixa() {
     withPinVerification(() => {
       setDeleteMovId(m.id);
       setDeleteConfirmOpen(true);
-    }, setPinOpen, (fn) => setPinAction(() => fn));
+    }, setPinOpen, setPinAction);
   };
 
   const confirmDeleteMov = async () => {
