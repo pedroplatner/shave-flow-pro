@@ -436,8 +436,17 @@ export default function Atendimentos() {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <span className="text-sm font-semibold text-primary mr-1">R$ {Number(a.total).toFixed(2)}</span>
-                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openEdit(a)}>Editar</Button>
-                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setDeleteId(a.id)}>Excluir</Button>
+                          {status === 'aberta' ? (
+                            <>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openEdit(a)}>Editar</Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setDeleteId(a.id)}>Excluir</Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => withPinVerification(() => openEdit(a))}>Editar</Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => withPinVerification(() => setDeleteId(a.id))}>Excluir</Button>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-1 ml-8">
