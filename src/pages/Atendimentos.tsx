@@ -319,13 +319,14 @@ export default function Atendimentos() {
   };
 
   const withPinVerification = (action: () => void) => {
-    const pin = localStorage.getItem('caixa_pin');
-    if (pin) {
-      setPinAction(() => action);
-      setPinOpen(true);
-    } else {
-      action();
-    }
+    checkHasPin().then(hasPin => {
+      if (hasPin) {
+        setPinAction(() => action);
+        setPinOpen(true);
+      } else {
+        action();
+      }
+    });
   };
 
   const fecharComanda = async (barb: any) => {
