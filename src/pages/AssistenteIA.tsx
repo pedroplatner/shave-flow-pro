@@ -19,6 +19,7 @@ const SUGGESTIONS = [
 ];
 
 export default function AssistenteIA() {
+  const { session } = useAuth();
   const { data: atendimentos = [] } = useAtendimentos();
   const { data: barbeiros = [] } = useBarbeiros();
   const { data: servicos = [] } = useServicos();
