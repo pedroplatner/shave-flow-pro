@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, Minus, ArrowLeft } from 'lucide-react';
+import { Plus, Pencil, Trash2, Minus, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBarbeiros, useServicos, useAtendimentos, useBarbershopId, useProdutos, useCaixaDiario, useComandas } from '@/hooks/useBarbershop';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -132,6 +132,8 @@ export default function Atendimentos() {
 
   // Comanda status helper
   const getComandaStatus = (barbeiroId: string) => {
+    // Past dates: always treated as closed
+    if (dataSelecionada < hoje) return 'fechada';
     const c = comandas.find(c => c.barbeiro_id === barbeiroId);
     return c?.status || 'aberta';
   };
@@ -279,6 +281,22 @@ export default function Atendimentos() {
     toast.success(`Comanda de ${barb.nome} fechada!`);
   };
 
+  const reabrirComanda = async (barb: any) => {
+    if (!bsId) return;
+    await supabase.from('comandas').upsert({
+      barbershop_id: bsId, barbeiro_id: barb.id, barbeiro_nome: barb.nome,
+      data: dataSelecionada, status: 'aberta',
+    }, { onConflict: 'barbershop_id,barbeiro_id,data' });
+    queryClient.invalidateQueries({ queryKey: ['comandas'] });
+    toast.success(`Comanda de ${barb.nome} reaberta!`);
+  };
+
+  const navigateMonth = (delta: number) => {
+    const d = new Date(dataSelecionada + 'T12:00:00');
+    d.setMonth(d.getMonth() + delta);
+    setDataSelecionada(d.toISOString().split('T')[0]);
+  };
+
   const servicoCheckList = (selected: string[], toggle: (nome: string) => void) => (
     <>
       {servicos.filter(s => s.ativo).map(s => (
@@ -379,6 +397,11 @@ export default function Atendimentos() {
                   <Plus className="h-3 w-3 mr-1" /> Novo Atendimento
                 </Button>
               )}
+              {status === 'fechada' && dataSelecionada === hoje && (
+                <Button variant="outline" size="sm" className="text-xs" onClick={() => withPinVerification(() => reabrirComanda(barb))}>
+                  Reabrir Comanda
+                </Button>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -413,8 +436,17 @@ export default function Atendimentos() {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <span className="text-sm font-semibold text-primary mr-1">R$ {Number(a.total).toFixed(2)}</span>
-                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openEdit(a)}>Editar</Button>
-                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setDeleteId(a.id)}>Excluir</Button>
+                          {status === 'aberta' ? (
+                            <>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openEdit(a)}>Editar</Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setDeleteId(a.id)}>Excluir</Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => withPinVerification(() => openEdit(a))}>Editar</Button>
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => withPinVerification(() => setDeleteId(a.id))}>Excluir</Button>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-1 ml-8">
@@ -459,6 +491,11 @@ export default function Atendimentos() {
                 {status === 'aberta' && (
                   <Button className="w-full mt-2" onClick={() => withPinVerification(() => fecharComanda(barb))}>
                     Fechar Comanda do {barb.nome}
+                  </Button>
+                )}
+                {status === 'fechada' && dataSelecionada === hoje && (
+                  <Button variant="outline" className="w-full mt-2" onClick={() => withPinVerification(() => reabrirComanda(barb))}>
+                    Reabrir Comanda do {barb.nome}
                   </Button>
                 )}
               </CardContent>
@@ -617,20 +654,28 @@ export default function Atendimentos() {
         {/* BLOCO 1 — Calendário semanal */}
         <Card className="bg-card border">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-xs text-muted-foreground text-center mb-2 capitalize">
-              {new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(-1)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <p className="text-xs text-muted-foreground capitalize">
+                {new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              </p>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="grid grid-cols-7 gap-1 text-center">
               {weekDays.map((d, i) => {
                 const ds = d.toISOString().split('T')[0];
                 const isSelected = ds === dataSelecionada;
-                const isFriday = d.getDay() === 5;
+                const isToday = ds === hoje;
                 return (
                   <button key={i} onClick={() => setDataSelecionada(ds)}
                     className="flex flex-col items-center gap-0.5 py-1 rounded-lg transition-colors hover:bg-muted">
-                    <span className={`text-[10px] ${isFriday && !isSelected ? 'text-primary' : 'text-muted-foreground'}`}>{DAY_LABELS[i]}</span>
+                    <span className="text-[10px] text-muted-foreground">{DAY_LABELS[i]}</span>
                     <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-colors
-                      ${isSelected ? 'bg-primary text-primary-foreground' : isFriday ? 'text-primary' : ''}`}>
+                      ${isToday && isSelected ? 'bg-primary text-primary-foreground' : isToday ? 'ring-2 ring-primary text-primary' : isSelected ? 'bg-muted-foreground/20' : ''}`}>
                       {d.getDate()}
                     </span>
                   </button>
