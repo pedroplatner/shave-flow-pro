@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, Minus, ArrowLeft } from 'lucide-react';
+import { Plus, Pencil, Trash2, Minus, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBarbeiros, useServicos, useAtendimentos, useBarbershopId, useProdutos, useCaixaDiario, useComandas } from '@/hooks/useBarbershop';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
