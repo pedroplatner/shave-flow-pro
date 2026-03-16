@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Bot, Send, User, Loader2, Sparkles } from 'lucide-react';
 import { useAtendimentos, useBarbeiros, useServicos, useProdutos, useCaixaDiario, useCaixaMovimentacoes } from '@/hooks/useBarbershop';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
