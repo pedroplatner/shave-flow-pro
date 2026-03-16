@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PinDialogProps {
   open: boolean;
@@ -12,21 +13,24 @@ interface PinDialogProps {
 
 export default function PinDialog({ open, onOpenChange, onConfirm }: PinDialogProps) {
   const [pin, setPin] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
-  const handleConfirm = () => {
-    const savedPin = localStorage.getItem('caixa_pin');
-    if (!savedPin) {
-      onConfirm();
-      onOpenChange(false);
-      setPin('');
-      return;
-    }
-    if (pin === savedPin) {
-      onConfirm();
-      onOpenChange(false);
-      setPin('');
-    } else {
-      toast.error('PIN incorreto');
+  const handleConfirm = async () => {
+    setVerifying(true);
+    try {
+      const { data, error } = await supabase.rpc('verify_barbershop_pin', { _pin: pin });
+      if (error) throw error;
+      if (data) {
+        onConfirm();
+        onOpenChange(false);
+        setPin('');
+      } else {
+        toast.error('PIN incorreto');
+      }
+    } catch {
+      toast.error('Erro ao verificar PIN');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -49,19 +53,28 @@ export default function PinDialog({ open, onOpenChange, onConfirm }: PinDialogPr
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => { onOpenChange(false); setPin(''); }}>Cancelar</Button>
-          <Button onClick={handleConfirm} disabled={pin.length !== 4}>Confirmar</Button>
+          <Button onClick={handleConfirm} disabled={pin.length !== 4 || verifying}>
+            {verifying ? 'Verificando...' : 'Confirmar'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
+export async function checkHasPin(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('has_barbershop_pin');
+  if (error) return false;
+  return !!data;
+}
+
 export function withPinVerification(action: () => void, setPinOpen: (v: boolean) => void, setPinAction: (fn: () => void) => void) {
-  const savedPin = localStorage.getItem('caixa_pin');
-  if (!savedPin) {
-    action();
-  } else {
-    setPinAction(() => action);
-    setPinOpen(true);
-  }
+  checkHasPin().then(hasPin => {
+    if (!hasPin) {
+      action();
+    } else {
+      setPinAction(() => action);
+      setPinOpen(true);
+    }
+  });
 }

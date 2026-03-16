@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { Package, Moon, Sun, Bot, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Configuracoes() {
   const { settings, updateSettings } = useApp();
@@ -16,14 +17,21 @@ export default function Configuracoes() {
   const [pin, setPin] = useState('');
   const [hasPin, setHasPin] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setHasPin(!!localStorage.getItem('caixa_pin'));
+    supabase.rpc('has_barbershop_pin').then(({ data }) => {
+      setHasPin(!!data);
+      setLoading(false);
+    });
   }, []);
 
-  const handleSavePin = () => {
+  const handleSavePin = async () => {
     if (pin.length !== 4) { toast.error('PIN deve ter 4 dígitos'); return; }
-    localStorage.setItem('caixa_pin', pin);
+    const { error } = await supabase.rpc('set_barbershop_pin', { _pin: pin });
+    if (error) { toast.error('Erro ao salvar PIN'); return; }
+    // Remove legacy localStorage PIN if present
+    localStorage.removeItem('caixa_pin');
     setHasPin(true);
     setEditing(false);
     setPin('');
@@ -81,7 +89,9 @@ export default function Configuracoes() {
               <ShieldCheck className="h-5 w-5 text-muted-foreground" /> Segurança do Caixa
             </h3>
             <div className="space-y-4">
-              {hasPin && !editing ? (
+              {loading ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : hasPin && !editing ? (
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">PIN configurado</p>

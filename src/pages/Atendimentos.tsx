@@ -17,7 +17,7 @@ import { useBarbeiros, useServicos, useAtendimentos, useBarbershopId, useProduto
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import PinDialog from '@/components/PinDialog';
+import PinDialog, { checkHasPin } from '@/components/PinDialog';
 
 interface ProdutoSelecionado {
   id: string;
@@ -319,13 +319,14 @@ export default function Atendimentos() {
   };
 
   const withPinVerification = (action: () => void) => {
-    const pin = localStorage.getItem('caixa_pin');
-    if (pin) {
-      setPinAction(() => action);
-      setPinOpen(true);
-    } else {
-      action();
-    }
+    checkHasPin().then(hasPin => {
+      if (hasPin) {
+        setPinAction(() => action);
+        setPinOpen(true);
+      } else {
+        action();
+      }
+    });
   };
 
   const fecharComanda = async (barb: any) => {
