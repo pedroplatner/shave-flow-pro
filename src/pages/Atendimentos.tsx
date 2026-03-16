@@ -61,6 +61,61 @@ function getWeekDays(refDate: Date) {
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+const MONTH_NAMES_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const WEEKDAY_SHORT_PT = ['Do', 'Se', 'Te', 'Qu', 'Qu', 'Se', 'Sá'];
+
+function MiniCalendar({ selected, onSelect, hoje }: { selected: Date; onSelect: (d: Date) => void; hoje: string }) {
+  const [viewMonth, setViewMonth] = useState(selected.getMonth());
+  const [viewYear, setViewYear] = useState(selected.getFullYear());
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let i = 1; i <= daysInMonth; i++) cells.push(i);
+
+  return (
+    <div className="p-3 w-[260px]">
+      <div className="flex items-center justify-between mb-3">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+          if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); }
+          else setViewMonth(viewMonth - 1);
+        }}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium">{MONTH_NAMES_PT[viewMonth]} {viewYear}</span>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+          if (viewMonth === 11) { setViewMonth(0); setViewYear(viewYear + 1); }
+          else setViewMonth(viewMonth + 1);
+        }}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-7 gap-0 text-center mb-1">
+        {WEEKDAY_SHORT_PT.map((wd, i) => (
+          <span key={i} className="text-[10px] text-muted-foreground py-1">{wd}</span>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-0 text-center">
+        {cells.map((day, i) => {
+          if (day === null) return <span key={i} />;
+          const d = new Date(viewYear, viewMonth, day);
+          const ds = d.toISOString().split('T')[0];
+          const isToday = ds === hoje;
+          const isSel = ds === selected.toISOString().split('T')[0];
+          return (
+            <button key={i} onClick={() => onSelect(d)}
+              className={`w-8 h-8 mx-auto rounded-full text-sm transition-colors hover:bg-muted flex items-center justify-center
+                ${isToday && isSel ? 'bg-primary text-primary-foreground' : isToday ? 'text-primary font-bold' : isSel ? 'bg-muted-foreground/20 font-semibold' : ''}`}>
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Atendimentos() {
   const { data: barbeiros = [] } = useBarbeiros();
   const { data: servicos = [] } = useServicos();
