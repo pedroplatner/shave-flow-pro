@@ -253,6 +253,51 @@ export type Database = {
           },
         ]
       }
+      comandas: {
+        Row: {
+          barbeiro_id: string
+          barbeiro_nome: string
+          barbershop_id: string
+          created_at: string
+          data: string
+          id: string
+          status: string
+        }
+        Insert: {
+          barbeiro_id: string
+          barbeiro_nome: string
+          barbershop_id: string
+          created_at?: string
+          data: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          barbeiro_id?: string
+          barbeiro_nome?: string
+          barbershop_id?: string
+          created_at?: string
+          data?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comandas_barbeiro_id_fkey"
+            columns: ["barbeiro_id"]
+            isOneToOne: false
+            referencedRelation: "barbeiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comandas_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           barbershop_id: string
