@@ -3,6 +3,7 @@ import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAtendimentos, useBarbeiros, useServicos, useProdutos, useCaixaDiario, useCaixaMovimentacoes } from '@/hooks/useBarbershop';
 import ReactMarkdown from 'react-markdown';
 import { useLocation } from 'react-router-dom';
