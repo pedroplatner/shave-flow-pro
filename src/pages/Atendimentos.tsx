@@ -657,13 +657,37 @@ export default function Atendimentos() {
         <Card className="bg-card border">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between mb-2">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(-1)}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                const d = new Date(dataSelecionada + 'T12:00:00');
+                d.setDate(d.getDate() - 7);
+                setDataSelecionada(d.toISOString().split('T')[0]);
+              }}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <p className="text-xs text-muted-foreground capitalize">
-                {new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-              </p>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(1)}>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button className="text-xs text-muted-foreground capitalize hover:text-foreground transition-colors cursor-pointer">
+                    {new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <MiniCalendar
+                    selected={new Date(dataSelecionada + 'T12:00:00')}
+                    onSelect={(d) => {
+                      if (d) {
+                        setDataSelecionada(d.toISOString().split('T')[0]);
+                        setCalendarOpen(false);
+                      }
+                    }}
+                    hoje={hoje}
+                  />
+                </PopoverContent>
+              </Popover>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                const d = new Date(dataSelecionada + 'T12:00:00');
+                d.setDate(d.getDate() + 7);
+                setDataSelecionada(d.toISOString().split('T')[0]);
+              }}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
