@@ -152,18 +152,21 @@ export type Database = {
           id: string
           nome: string
           owner_id: string
+          pin_hash: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           nome?: string
           owner_id: string
+          pin_hash?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           nome?: string
           owner_id?: string
+          pin_hash?: string | null
         }
         Relationships: []
       }
@@ -386,7 +389,10 @@ export type Database = {
     }
     Functions: {
       get_my_barbershop_id: { Args: never; Returns: string }
+      has_barbershop_pin: { Args: never; Returns: boolean }
       is_my_barbershop: { Args: { _barbershop_id: string }; Returns: boolean }
+      set_barbershop_pin: { Args: { _pin: string }; Returns: undefined }
+      verify_barbershop_pin: { Args: { _pin: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
