@@ -348,11 +348,6 @@ export default function Atendimentos() {
     toast.success(`Comanda de ${barb.nome} reaberta!`);
   };
 
-  const navigateMonth = (delta: number) => {
-    const d = new Date(dataSelecionada + 'T12:00:00');
-    d.setMonth(d.getMonth() + delta);
-    setDataSelecionada(d.toISOString().split('T')[0]);
-  };
 
   const servicoCheckList = (selected: string[], toggle: (nome: string) => void) => (
     <>
