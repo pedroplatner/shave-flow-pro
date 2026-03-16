@@ -106,6 +106,7 @@ export default function Atendimentos() {
   // PIN
   const [pinOpen, setPinOpen] = useState(false);
   const [pinAction, setPinAction] = useState<(() => void) | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const weekDays = useMemo(() => getWeekDays(new Date(dataSelecionada + 'T12:00:00')), [dataSelecionada]);
   const hoje = new Date().toISOString().split('T')[0];
