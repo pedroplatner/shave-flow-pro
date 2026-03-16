@@ -397,6 +397,11 @@ export default function Atendimentos() {
                   <Plus className="h-3 w-3 mr-1" /> Novo Atendimento
                 </Button>
               )}
+              {status === 'fechada' && dataSelecionada === hoje && (
+                <Button variant="outline" size="sm" className="text-xs" onClick={() => withPinVerification(() => reabrirComanda(barb))}>
+                  Reabrir Comanda
+                </Button>
+              )}
             </div>
 
             <div className="space-y-3">
