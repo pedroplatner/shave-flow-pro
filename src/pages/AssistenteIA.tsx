@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Bot, Send, User, Loader2, Sparkles } from 'lucide-react';
 import { useAtendimentos, useBarbeiros, useServicos, useProdutos, useCaixaDiario, useCaixaMovimentacoes } from '@/hooks/useBarbershop';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -18,6 +19,7 @@ const SUGGESTIONS = [
 ];
 
 export default function AssistenteIA() {
+  const { session } = useAuth();
   const { data: atendimentos = [] } = useAtendimentos();
   const { data: barbeiros = [] } = useBarbeiros();
   const { data: servicos = [] } = useServicos();
@@ -68,7 +70,7 @@ export default function AssistenteIA() {
     try {
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/barberpro-ai`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
         body: JSON.stringify({ messages: allMessages.map(m => ({ role: m.role, content: m.content })), businessData: getBusinessData() }),
       });
       if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error || `Erro ${resp.status}`); }

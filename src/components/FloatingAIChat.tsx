@@ -3,6 +3,7 @@ import { Bot, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAtendimentos, useBarbeiros, useServicos, useProdutos, useCaixaDiario, useCaixaMovimentacoes } from '@/hooks/useBarbershop';
 import ReactMarkdown from 'react-markdown';
 import { useLocation } from 'react-router-dom';
@@ -11,6 +12,7 @@ type Msg = { role: 'user' | 'assistant'; content: string };
 
 export default function FloatingAIChat() {
   const { settings } = useApp();
+  const { session } = useAuth();
   const location = useLocation();
   const { data: atendimentos = [] } = useAtendimentos();
   const { data: barbeiros = [] } = useBarbeiros();
@@ -65,7 +67,7 @@ export default function FloatingAIChat() {
     try {
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/barberpro-ai`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
         body: JSON.stringify({ messages: allMessages.map(m => ({ role: m.role, content: m.content })), businessData: getBusinessData() }),
       });
       if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error || `Erro ${resp.status}`); }
