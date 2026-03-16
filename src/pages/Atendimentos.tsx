@@ -132,6 +132,8 @@ export default function Atendimentos() {
 
   // Comanda status helper
   const getComandaStatus = (barbeiroId: string) => {
+    // Past dates: always treated as closed
+    if (dataSelecionada < hoje) return 'fechada';
     const c = comandas.find(c => c.barbeiro_id === barbeiroId);
     return c?.status || 'aberta';
   };
