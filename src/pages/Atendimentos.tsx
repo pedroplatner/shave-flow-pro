@@ -17,7 +17,7 @@ import { useBarbeiros, useServicos, useAtendimentos, useBarbershopId, useProduto
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import PinDialog from '@/components/PinDialog';
+import PinDialog, { checkHasPin } from '@/components/PinDialog';
 
 interface ProdutoSelecionado {
   id: string;
