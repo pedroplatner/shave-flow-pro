@@ -158,6 +158,22 @@ export function useCaixaHistorico() {
   });
 }
 
+export function useComandas(barbershopId: string | null | undefined, data: string) {
+  return useQuery({
+    queryKey: ['comandas', barbershopId, data],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from('comandas')
+        .select('*')
+        .eq('barbershop_id', barbershopId!)
+        .eq('data', data);
+      if (error) throw error;
+      return rows;
+    },
+    enabled: !!barbershopId,
+  });
+}
+
 export function useCaixaMovimentacoesByCaixaIds(caixaIds: string[]) {
   return useQuery({
     queryKey: ['caixa_movimentacoes_bulk', caixaIds],
