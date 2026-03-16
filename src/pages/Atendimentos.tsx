@@ -493,6 +493,11 @@ export default function Atendimentos() {
                     Fechar Comanda do {barb.nome}
                   </Button>
                 )}
+                {status === 'fechada' && dataSelecionada === hoje && (
+                  <Button variant="outline" className="w-full mt-2" onClick={() => withPinVerification(() => reabrirComanda(barb))}>
+                    Reabrir Comanda do {barb.nome}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
