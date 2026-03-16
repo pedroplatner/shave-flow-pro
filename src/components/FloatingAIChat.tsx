@@ -12,6 +12,7 @@ type Msg = { role: 'user' | 'assistant'; content: string };
 
 export default function FloatingAIChat() {
   const { settings } = useApp();
+  const { session } = useAuth();
   const location = useLocation();
   const { data: atendimentos = [] } = useAtendimentos();
   const { data: barbeiros = [] } = useBarbeiros();
