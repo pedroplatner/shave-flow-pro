@@ -635,20 +635,28 @@ export default function Atendimentos() {
         {/* BLOCO 1 — Calendário semanal */}
         <Card className="bg-card border">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-xs text-muted-foreground text-center mb-2 capitalize">
-              {new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(-1)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <p className="text-xs text-muted-foreground capitalize">
+                {new Date(dataSelecionada + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              </p>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="grid grid-cols-7 gap-1 text-center">
               {weekDays.map((d, i) => {
                 const ds = d.toISOString().split('T')[0];
                 const isSelected = ds === dataSelecionada;
-                const isFriday = d.getDay() === 5;
+                const isToday = ds === hoje;
                 return (
                   <button key={i} onClick={() => setDataSelecionada(ds)}
                     className="flex flex-col items-center gap-0.5 py-1 rounded-lg transition-colors hover:bg-muted">
-                    <span className={`text-[10px] ${isFriday && !isSelected ? 'text-primary' : 'text-muted-foreground'}`}>{DAY_LABELS[i]}</span>
+                    <span className="text-[10px] text-muted-foreground">{DAY_LABELS[i]}</span>
                     <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-colors
-                      ${isSelected ? 'bg-primary text-primary-foreground' : isFriday ? 'text-primary' : ''}`}>
+                      ${isToday && isSelected ? 'bg-primary text-primary-foreground' : isToday ? 'ring-2 ring-primary text-primary' : isSelected ? 'bg-muted-foreground/20' : ''}`}>
                       {d.getDate()}
                     </span>
                   </button>
