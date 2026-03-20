@@ -98,7 +98,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <img
               src={customLogo || defaultLogo}
               alt="Logo"
-              className="h-8 w-8 object-contain rounded-md"
+              className="h-10 w-10 object-contain"
             />
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
