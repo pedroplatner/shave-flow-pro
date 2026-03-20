@@ -23,6 +23,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       moduloProdutos: true,
       moduloEstoque: true,
       moduloIA: true,
+      logoUrl: '',
     };
   });
 
