@@ -5,6 +5,7 @@ interface AppSettings {
   moduloProdutos: boolean;
   moduloEstoque: boolean;
   moduloIA: boolean;
+  logoUrl: string;
 }
 
 interface AppContextType {
