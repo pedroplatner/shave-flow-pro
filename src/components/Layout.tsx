@@ -100,9 +100,6 @@ export default function Layout({ children }: { children: ReactNode }) {
               alt="Logo"
               className="h-8 w-8 object-contain rounded-md"
             />
-            <h1 className="text-xl font-bold tracking-tight">
-              <span className="text-primary">Barber</span>Pro
-            </h1>
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
