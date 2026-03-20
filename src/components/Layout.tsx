@@ -40,18 +40,12 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-6 pb-8 flex items-center gap-3">
+      <div className="p-6 pb-8 flex items-center justify-center">
         <img
           src={customLogo || defaultLogo}
           alt="Logo"
-          className="h-10 w-10 object-contain rounded-lg"
+          className="h-12 w-12 object-contain rounded-lg"
         />
-        <div>
-          <h1 className="text-lg font-bold tracking-tight">
-            <span className="text-primary">Barber</span>Pro
-          </h1>
-          <p className="text-xs text-muted-foreground">Gestão para Barbearias</p>
-        </div>
       </div>
       <nav className="flex-1 px-3 space-y-1">
         {filteredItems.map(item => {
@@ -106,9 +100,6 @@ export default function Layout({ children }: { children: ReactNode }) {
               alt="Logo"
               className="h-8 w-8 object-contain rounded-md"
             />
-            <h1 className="text-xl font-bold tracking-tight">
-              <span className="text-primary">Barber</span>Pro
-            </h1>
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
