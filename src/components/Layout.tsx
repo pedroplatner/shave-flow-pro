@@ -44,7 +44,7 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
         <img
           src={customLogo || defaultLogo}
           alt="Logo"
-          className="h-12 w-12 object-contain rounded-lg"
+          className="h-20 w-20 object-contain"
         />
       </div>
       <nav className="flex-1 px-3 space-y-1">
@@ -98,7 +98,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <img
               src={customLogo || defaultLogo}
               alt="Logo"
-              className="h-8 w-8 object-contain rounded-md"
+              className="h-10 w-10 object-contain"
             />
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
