@@ -255,7 +255,7 @@ export default function Atendimentos() {
       }).eq('id', p.id);
     }
 
-    if (caixaHoje && caixaHoje.status === 'aberto') {
+    if (caixaHoje && caixaHoje.status === 'aberto' && pagamento === 'Dinheiro') {
       const descCaixa = `Atendimento - ${barbeiroNome}${cliente ? ` / ${cliente}` : ''}`;
       await supabase.from('caixa_movimentacoes').insert({
         caixa_id: caixaHoje.id, barbershop_id: bsId, tipo: 'entrada',

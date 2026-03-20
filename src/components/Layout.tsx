@@ -9,6 +9,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import defaultLogo from '@/assets/logo.png';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -28,6 +29,8 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const { settings } = useApp();
   const { signOut } = useAuth();
 
+  const customLogo = settings.logoUrl || null;
+
   const filteredItems = menuItems.filter(item => {
     if (item.modules) {
       return item.modules.some(mod => (settings as any)[mod]);
@@ -37,11 +40,18 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-6 pb-8">
-        <h1 className="text-2xl font-bold tracking-tight">
-          <span className="text-primary">Barber</span>Pro
-        </h1>
-        <p className="text-xs text-muted-foreground mt-1">Gestão para Barbearias</p>
+      <div className="p-6 pb-8 flex items-center gap-3">
+        <img
+          src={customLogo || defaultLogo}
+          alt="Logo"
+          className="h-10 w-10 object-contain rounded-lg"
+        />
+        <div>
+          <h1 className="text-lg font-bold tracking-tight">
+            <span className="text-primary">Barber</span>Pro
+          </h1>
+          <p className="text-xs text-muted-foreground">Gestão para Barbearias</p>
+        </div>
       </div>
       <nav className="flex-1 px-3 space-y-1">
         {filteredItems.map(item => {
@@ -79,6 +89,8 @@ function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const { settings } = useApp();
+  const customLogo = settings.logoUrl || null;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -88,9 +100,16 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       <div className="flex-1 lg:ml-64 flex flex-col">
         <header className="lg:hidden flex items-center justify-between p-4 border-b border-border sticky top-0 z-40 bg-background/80 backdrop-blur-sm">
-          <h1 className="text-xl font-bold tracking-tight">
-            <span className="text-primary">Barber</span>Pro
-          </h1>
+          <div className="flex items-center gap-2">
+            <img
+              src={customLogo || defaultLogo}
+              alt="Logo"
+              className="h-8 w-8 object-contain rounded-md"
+            />
+            <h1 className="text-xl font-bold tracking-tight">
+              <span className="text-primary">Barber</span>Pro
+            </h1>
+          </div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
