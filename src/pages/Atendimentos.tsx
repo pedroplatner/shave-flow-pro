@@ -619,11 +619,12 @@ export default function Atendimentos() {
                 <Label>Forma de Pagamento</Label>
                 <Select value={pagamento} onValueChange={setPagamento}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
+                   <SelectContent>
                     <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                     <SelectItem value="Pix">Pix</SelectItem>
                     <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
                     <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
+                    <SelectItem value="Cartão DS">Cartão DS</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
