@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import GridGlowBackground from '@/components/GridGlowBackground';
 
 type Mode = 'login' | 'register';
 
@@ -153,40 +154,40 @@ export default function Login() {
         {/* Painel promocional (direita no login, esquerda no registro) */}
         <div
           className={cn(
-            'relative p-8 sm:p-12 flex flex-col justify-center items-center text-center overflow-hidden order-1',
+            'relative flex flex-col overflow-hidden order-1',
             isLogin ? 'md:order-2' : 'md:order-1'
           )}
-          style={{
-            background:
-              'radial-gradient(circle at 30% 30%, hsl(var(--primary) / 0.35), transparent 60%), radial-gradient(circle at 70% 70%, hsl(var(--primary) / 0.25), transparent 55%), linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%)',
-          }}
         >
-          {/* Glow decorativo */}
-          <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-xs animate-fade-in">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground leading-tight">
-              {isLogin ? (
-                <>Não tem<br />uma conta?</>
-              ) : (
-                <>Já possui<br />uma conta?</>
-              )}
-            </h2>
-            <p className="text-sm text-muted-foreground mb-8 font-body">
-              {isLogin
-                ? 'Crie sua conta agora e gerencie sua barbearia de forma simples e profissional.'
-                : 'Faça login e continue de onde parou na gestão da sua barbearia.'}
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => switchMode(isLogin ? 'register' : 'login')}
-              className="rounded-full px-8 h-11 border-border bg-background/40 backdrop-blur hover:bg-background/60"
-            >
-              {isLogin ? 'Cadastre-se' : 'Fazer login'}
-            </Button>
-          </div>
+          <GridGlowBackground
+            backgroundColor="hsl(var(--background))"
+            gridColor="hsl(var(--primary) / 0.08)"
+            glowColors={['hsl(var(--primary))', 'hsl(var(--primary) / 0.7)', 'hsl(var(--primary))']}
+            gridSize={50}
+            glowCount={10}
+          >
+            <div className="relative z-10 max-w-xs animate-fade-in p-8 sm:p-12 text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground leading-tight">
+                {isLogin ? (
+                  <>Não tem<br />uma conta?</>
+                ) : (
+                  <>Já possui<br />uma conta?</>
+                )}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-8 font-body">
+                {isLogin
+                  ? 'Crie sua conta agora e gerencie sua barbearia de forma simples e profissional.'
+                  : 'Faça login e continue de onde parou na gestão da sua barbearia.'}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => switchMode(isLogin ? 'register' : 'login')}
+                className="rounded-full px-8 h-11 border-border bg-background/40 backdrop-blur hover:bg-background/60"
+              >
+                {isLogin ? 'Cadastre-se' : 'Fazer login'}
+              </Button>
+            </div>
+          </GridGlowBackground>
         </div>
       </div>
     </div>
