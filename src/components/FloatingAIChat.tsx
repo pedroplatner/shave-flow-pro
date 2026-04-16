@@ -29,7 +29,8 @@ export default function FloatingAIChat() {
 
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
 
-  if (!settings.moduloIA || location.pathname === '/assistente-ia') return null;
+  const hiddenRoutes = ['/assistente-ia', '/login', '/register'];
+  if (!settings.moduloIA || hiddenRoutes.includes(location.pathname)) return null;
 
   const getBusinessData = () => {
     const now = new Date();
