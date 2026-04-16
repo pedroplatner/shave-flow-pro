@@ -68,6 +68,10 @@ export default function Caixa() {
   const [editMovId, setEditMovId] = useState<string | null>(null);
   const [editMovDescricao, setEditMovDescricao] = useState('');
 
+  // Edit valor inicial state
+  const [editInicialOpen, setEditInicialOpen] = useState(false);
+  const [editInicialValor, setEditInicialValor] = useState('');
+
   // Delete mov state
   const [deleteMovId, setDeleteMovId] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -167,6 +171,24 @@ export default function Caixa() {
     toast.success('Movimentação excluída!');
     invalidateCaixa();
     setDeleteConfirmOpen(false); setDeleteMovId(null);
+  };
+
+  const handleEditValorInicial = () => {
+    withPinVerification(() => {
+      setEditInicialValor(String(caixa?.valor_inicial ?? 0));
+      setEditInicialOpen(true);
+    }, setPinOpen, setPinAction);
+  };
+
+  const handleSaveValorInicial = async () => {
+    if (!caixa) return;
+    setSaving(true);
+    const { error } = await supabase.from('caixas_diarios').update({ valor_inicial: parseFloat(editInicialValor) || 0 }).eq('id', caixa.id);
+    setSaving(false);
+    if (error) { toast.error('Erro ao editar valor inicial'); return; }
+    toast.success('Valor inicial atualizado!');
+    invalidateCaixa();
+    setEditInicialOpen(false);
   };
 
   const HistoricoSection = () => {
@@ -287,7 +309,16 @@ export default function Caixa() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <StatCard title="Valor Inicial" value={`R$ ${Number(caixa.valor_inicial).toFixed(2)}`} icon={Wallet} />
+          <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1 relative">
+            <div className="flex items-center justify-between">
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={handleEditValorInicial}>
+                <Pencil className="h-3 w-3" /> Editar
+              </Button>
+            </div>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">Valor Inicial</span>
+            <span className="text-lg sm:text-xl font-bold">R$ {Number(caixa.valor_inicial).toFixed(2)}</span>
+          </div>
           <StatCard title="Total Entradas" value={`R$ ${totalEntradas.toFixed(2)}`} icon={ArrowUpCircle} />
           <StatCard title="Total Saídas" value={`R$ ${totalSaidas.toFixed(2)}`} icon={ArrowDownCircle} />
           <div className="bg-card border-2 border-primary rounded-xl p-4 flex flex-col items-center justify-center">
@@ -335,6 +366,22 @@ export default function Caixa() {
                 <Input value={editMovDescricao} onChange={e => setEditMovDescricao(e.target.value)} />
               </div>
               <Button className="w-full" onClick={handleSaveEditMov} disabled={!editMovDescricao || saving}>
+                {saving ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit valor inicial dialog */}
+        <Dialog open={editInicialOpen} onOpenChange={setEditInicialOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader><DialogTitle>Editar Valor Inicial</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Valor inicial em caixa (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={editInicialValor} onChange={e => setEditInicialValor(e.target.value)} placeholder="0,00" />
+              </div>
+              <Button className="w-full" onClick={handleSaveValorInicial} disabled={saving}>
                 {saving ? 'Salvando...' : 'Salvar'}
               </Button>
             </div>
