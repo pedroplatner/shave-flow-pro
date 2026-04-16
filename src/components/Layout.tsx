@@ -10,7 +10,6 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import defaultLogo from '@/assets/logo.png';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -47,12 +46,14 @@ function DesktopSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
     >
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className={cn('flex items-center justify-center py-5', collapsed ? 'px-2' : 'px-6')}>
-          <img
-            src={customLogo || defaultLogo}
-            alt="Logo"
-            className={cn('object-contain transition-all duration-300', collapsed ? 'h-10 w-10' : 'h-20 w-20')}
-          />
+        <div className={cn('flex items-center justify-center py-5', collapsed ? 'px-2 min-h-[60px]' : 'px-6 min-h-[112px]')}>
+          {customLogo && (
+            <img
+              src={customLogo}
+              alt="Logo"
+              className={cn('object-contain transition-all duration-300', collapsed ? 'h-10 w-10' : 'h-20 w-20')}
+            />
+          )}
         </div>
 
         {/* Nav */}
@@ -155,8 +156,8 @@ function MobileSidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-6 pb-8 flex items-center justify-center">
-        <img src={customLogo || defaultLogo} alt="Logo" className="h-20 w-20 object-contain" />
+      <div className="p-6 pb-8 flex items-center justify-center min-h-[112px]">
+        {customLogo && <img src={customLogo} alt="Logo" className="h-20 w-20 object-contain" />}
       </div>
       <nav className="flex-1 px-3 space-y-1">
         {filteredItems.map(item => {
@@ -212,8 +213,8 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       <div className={cn('flex-1 flex flex-col transition-all duration-300', collapsed ? 'lg:ml-[68px]' : 'lg:ml-64')}>
         <header className="lg:hidden flex items-center justify-between p-4 border-b border-border sticky top-0 z-40 bg-background/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <img src={customLogo || defaultLogo} alt="Logo" className="h-10 w-10 object-contain" />
+          <div className="flex items-center gap-2 min-h-[40px]">
+            {customLogo && <img src={customLogo} alt="Logo" className="h-10 w-10 object-contain" />}
           </div>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
