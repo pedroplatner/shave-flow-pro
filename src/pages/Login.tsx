@@ -159,9 +159,9 @@ export default function Login() {
           )}
         >
           <GridGlowBackground
-            backgroundColor="hsl(var(--background))"
-            gridColor="hsl(var(--primary) / 0.08)"
-            glowColors={['hsl(var(--primary))', 'hsl(var(--primary) / 0.7)', 'hsl(var(--primary))']}
+            backgroundColor="#0B0B0B"
+            gridColor="rgba(245, 160, 0, 0.08)"
+            glowColors={['#F5A000', '#FFB733', '#F5A000']}
             gridSize={50}
             glowCount={10}
           >
