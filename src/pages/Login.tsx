@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import GridGlowBackground from '@/components/GridGlowBackground';
 
 type Mode = 'login' | 'register';
 
