@@ -309,7 +309,16 @@ export default function Caixa() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <StatCard title="Valor Inicial" value={`R$ ${Number(caixa.valor_inicial).toFixed(2)}`} icon={Wallet} />
+          <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-1 relative">
+            <div className="flex items-center justify-between">
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={handleEditValorInicial}>
+                <Pencil className="h-3 w-3" /> Editar
+              </Button>
+            </div>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">Valor Inicial</span>
+            <span className="text-lg sm:text-xl font-bold">R$ {Number(caixa.valor_inicial).toFixed(2)}</span>
+          </div>
           <StatCard title="Total Entradas" value={`R$ ${totalEntradas.toFixed(2)}`} icon={ArrowUpCircle} />
           <StatCard title="Total Saídas" value={`R$ ${totalSaidas.toFixed(2)}`} icon={ArrowDownCircle} />
           <div className="bg-card border-2 border-primary rounded-xl p-4 flex flex-col items-center justify-center">
