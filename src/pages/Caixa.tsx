@@ -372,6 +372,22 @@ export default function Caixa() {
           </DialogContent>
         </Dialog>
 
+        {/* Edit valor inicial dialog */}
+        <Dialog open={editInicialOpen} onOpenChange={setEditInicialOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader><DialogTitle>Editar Valor Inicial</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Valor inicial em caixa (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={editInicialValor} onChange={e => setEditInicialValor(e.target.value)} placeholder="0,00" />
+              </div>
+              <Button className="w-full" onClick={handleSaveValorInicial} disabled={saving}>
+                {saving ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Delete mov confirm */}
         <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
           <AlertDialogContent>
