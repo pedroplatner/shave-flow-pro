@@ -68,6 +68,10 @@ export default function Caixa() {
   const [editMovId, setEditMovId] = useState<string | null>(null);
   const [editMovDescricao, setEditMovDescricao] = useState('');
 
+  // Edit valor inicial state
+  const [editInicialOpen, setEditInicialOpen] = useState(false);
+  const [editInicialValor, setEditInicialValor] = useState('');
+
   // Delete mov state
   const [deleteMovId, setDeleteMovId] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
