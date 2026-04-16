@@ -173,6 +173,24 @@ export default function Caixa() {
     setDeleteConfirmOpen(false); setDeleteMovId(null);
   };
 
+  const handleEditValorInicial = () => {
+    withPinVerification(() => {
+      setEditInicialValor(String(caixa?.valor_inicial ?? 0));
+      setEditInicialOpen(true);
+    }, setPinOpen, setPinAction);
+  };
+
+  const handleSaveValorInicial = async () => {
+    if (!caixa) return;
+    setSaving(true);
+    const { error } = await supabase.from('caixas_diarios').update({ valor_inicial: parseFloat(editInicialValor) || 0 }).eq('id', caixa.id);
+    setSaving(false);
+    if (error) { toast.error('Erro ao editar valor inicial'); return; }
+    toast.success('Valor inicial atualizado!');
+    invalidateCaixa();
+    setEditInicialOpen(false);
+  };
+
   const HistoricoSection = () => {
     if (historicoAnterior.length === 0) return null;
     return (
