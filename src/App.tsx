@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AppProvider } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SupportGuideProvider } from "@/contexts/SupportGuideContext";
+import SupportModal from "@/components/SupportModal";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -53,6 +55,7 @@ const AppRoutes = () => (
       <Route path="*" element={<NotFound />} />
     </Routes>
     <FloatingAIChat />
+    <SupportModal />
   </>
 );
 
@@ -61,6 +64,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppProvider>
+          <SupportGuideProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -68,6 +72,7 @@ const App = () => (
               <AppRoutes />
             </BrowserRouter>
           </TooltipProvider>
+          </SupportGuideProvider>
         </AppProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -6,13 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
-import { Package, Moon, Sun, Bot, ShieldCheck, ImagePlus, Trash2 } from 'lucide-react';
+import { Package, Moon, Sun, Bot, ShieldCheck, ImagePlus, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useSupportGuide } from '@/contexts/SupportGuideContext';
 
 export default function Configuracoes() {
   const { settings, updateSettings } = useApp();
   const { theme, setTheme } = useTheme();
+  const { openGuide } = useSupportGuide();
 
   const [pin, setPin] = useState('');
   const [currentPin, setCurrentPin] = useState('');
@@ -140,6 +142,19 @@ export default function Configuracoes() {
               </div>
               <Switch checked={theme === 'dark'} onCheckedChange={v => setTheme(v ? 'dark' : 'light')} />
             </div>
+          </div>
+
+          {/* Suporte */}
+          <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
+            <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-muted-foreground" /> Suporte
+            </h3>
+            <p className="text-sm text-muted-foreground font-body mb-4">
+              Guia passo a passo de cada módulo do sistema.
+            </p>
+            <Button variant="outline" size="sm" onClick={openGuide}>
+              Ver guia do sistema
+            </Button>
           </div>
 
           {/* PIN Security */}
